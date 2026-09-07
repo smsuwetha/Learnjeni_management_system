@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard — LearnJeni</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="app-layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-icon">🎓</div>
+      <div><div class="sb-logo-name">LearnJeni</div><div class="sb-logo-tag">Admin Panel</div></div>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-section">Main</div>
+      <a class="sb-link active" href="/admin_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+      <a class="sb-link" href="/manage_students"><span class="sb-icon">👨‍🎓</span> Students</a>
+      <a class="sb-link" href="/manage_staff"><span class="sb-icon">👩‍🏫</span> Staff</a>
+      <a class="sb-link" href="/manage_courses"><span class="sb-icon">📚</span> Courses</a>
+      <div class="sb-section">Reports</div>
+      <a class="sb-link" href="/admin_videos"><span class="sb-icon">🎥</span> Manage Videos</a>\n    <a class="sb-link" href="/analytics"><span class="sb-icon">📊</span> Analytics</a>
+     
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar" style="background:linear-gradient(135deg,#5B6EF5,#9B6EF5)">👑</div>
+        <div><div class="sb-uname">{{ session.name }}</div><div class="sb-urole">Super Admin</div></div>
+      </div>
+      <a class="sb-logout" href="/logout">🚪 Logout</a>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">Admin Dashboard</div>
+        <div class="topbar-sub">Welcome back, {{ session.name }} 👑</div>
+      </div>
+      <div class="topbar-actions">
+        <a class="btn btn-accent btn-sm" href="/add_course">+ Add Course</a>
+      </div>
+    </div>
+
+    <div class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for c,m in messages %}<div class="flash {{c}}">{{m}}</div>{% endfor %}{% endif %}
+      {% endwith %}
+
+      <div class="page-title">Overview</div>
+      <div class="page-sub">Platform performance at a glance</div>
+
+      <!-- STATS -->
+      <div class="stats-grid">
+        <div class="stat-card blue">
+          <div class="stat-icon">👨‍🎓</div>
+          <div class="stat-label">Total Students</div>
+          <div class="stat-value">{{ students }}</div>
+          <div class="stat-trend trend-up">↑ Active</div>
+        </div>
+        <div class="stat-card teal">
+          <div class="stat-icon">👩‍🏫</div>
+          <div class="stat-label">Staff Members</div>
+          <div class="stat-value">{{ staff }}</div>
+          <div class="stat-trend trend-up">↑ Active</div>
+        </div>
+        <div class="stat-card gold">
+          <div class="stat-icon">📚</div>
+          <div class="stat-label">Total Courses</div>
+          <div class="stat-value">{{ courses }}</div>
+          <div class="stat-trend trend-neu">→ Running</div>
+        </div>
+        <div class="stat-card rose">
+          <div class="stat-icon">🎥</div>
+          <div class="stat-label">Videos Uploaded</div>
+          <div class="stat-value">{{ videos }}</div>
+          <div class="stat-trend trend-up">↑ This week</div>
+        </div>
+      </div>
+
+      <!-- CHARTS -->
+      <div class="grid-2" style="margin-bottom:20px">
+        <div class="card">
+          <div class="card-head"><span class="card-title">📊 Platform Overview</span></div>
+          <canvas id="barChart" height="180"></canvas>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">🚀 Quick Actions</span></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <a href="/manage_students" class="btn btn-ghost" style="text-align:center;padding:16px">👨‍🎓<br><span style="font-size:12px">Manage Students</span></a>
+            <a href="/manage_staff"    class="btn btn-ghost" style="text-align:center;padding:16px">👩‍🏫<br><span style="font-size:12px">Manage Staff</span></a>
+            <a href="/manage_courses"  class="btn btn-ghost" style="text-align:center;padding:16px">📚<br><span style="font-size:12px">Manage Courses</span></a>
+            <a href="/analytics"       class="btn btn-ghost" style="text-align:center;padding:16px">📊<br><span style="font-size:12px">View Analytics</span></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const c = document.getElementById('barChart').getContext('2d');
+new Chart(c, {
+  type:'bar',
+  data:{
+    labels:['Students','Staff','Courses','Videos'],
+    datasets:[{
+      label:'Count',
+      data:[{{ students }},{{ staff }},{{ courses }},{{ videos }}],
+      backgroundColor:['rgba(91,110,245,.7)','rgba(46,206,196,.7)','rgba(240,180,41,.7)','rgba(240,84,122,.7)'],
+      borderRadius:6
+    }]
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{display:false}},
+    scales:{
+      x:{ticks:{color:'#6B7A99'},grid:{color:'rgba(37,45,66,0.8)'}},
+      y:{ticks:{color:'#6B7A99'},grid:{color:'rgba(37,45,66,0.8)'}}
+    }
+  }
+});
+</script>
+</body>
+</html>

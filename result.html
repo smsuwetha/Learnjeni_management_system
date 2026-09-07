@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Result — LearnJeni</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-icon">🎓</div>
+      <div><div class="sb-logo-name">LearnJeni</div><div class="sb-logo-tag">Student Panel</div></div>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-section">Learning</div>
+      <a class="sb-link" href="/student_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+      <a class="sb-link active" href="/courses"><span class="sb-icon">📚</span> My Courses</a>
+      <a class="sb-link" href="/assignment"><span class="sb-icon">📝</span> Assignments</a>
+      <div class="sb-section">Progress</div>
+      <a class="sb-link" href="/attendance"><span class="sb-icon">📋</span> Attendance</a>
+      <a class="sb-link" href="/certificate"><span class="sb-icon">🎖️</span> Certificate</a>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar" style="background:linear-gradient(135deg,#F0B429,#F0547A)">{{ session.name[0]|upper }}</div>
+        <div><div class="sb-uname">{{ session.name }}</div><div class="sb-urole">Student</div></div>
+      </div>
+      <a class="sb-logout" href="/logout">🚪 Logout</a>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">Quiz Result</div>
+        <div class="topbar-sub">{{ result.title if result else 'Result' }}</div>
+      </div>
+      <div class="topbar-actions">
+        <a class="btn btn-ghost btn-sm" href="/courses">← Courses</a>
+        <a class="btn btn-ghost btn-sm" href="/student_dashboard">Dashboard</a>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      {% if result %}
+        {% set pct = ((result.score / result.total) * 100) | int %}
+        {% set passed = pct >= 60 %}
+
+      <div style="max-width:600px;margin:0 auto">
+
+        <!-- Result Header -->
+        <div class="card" style="text-align:center;padding:40px 30px;margin-bottom:16px;position:relative;overflow:hidden">
+          <div style="position:absolute;top:0;left:0;right:0;height:4px;background:{% if passed %}linear-gradient(90deg,var(--green),var(--teal)){% else %}linear-gradient(90deg,var(--rose),var(--purple)){% endif %}"></div>
+
+          <!-- Score Circle -->
+          <div style="position:relative;width:160px;height:160px;margin:0 auto 24px">
+            <canvas id="scoreDonut" style="position:absolute;top:0;left:0"></canvas>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column">
+              <div style="font-family:var(--font-d);font-size:42px;font-weight:700;line-height:1;color:{% if passed %}var(--green){% else %}var(--rose){% endif %}">{{ pct }}%</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:2px">Score</div>
+            </div>
+          </div>
+
+          <!-- Emoji & Title -->
+          <div style="font-size:48px;margin-bottom:12px">
+            {% if pct >= 80 %}🏆{% elif pct >= 60 %}🎉{% else %}📖{% endif %}
+          </div>
+
+          <div style="font-family:var(--font-d);font-size:26px;font-weight:700;margin-bottom:8px">
+            {% if pct >= 80 %}Excellent Work!
+            {% elif pct >= 60 %}Well Done!
+            {% else %}Keep Practising!{% endif %}
+          </div>
+
+          <div style="font-size:14px;color:var(--soft);margin-bottom:20px">
+            You scored <strong style="color:var(--text)">{{ result.score }} out of {{ result.total }}</strong> questions correctly
+          </div>
+
+          <!-- Stars -->
+          <div style="font-size:28px;letter-spacing:4px;margin-bottom:20px">
+            {% for i in range(5) %}
+              {% if i < (pct // 20) %}⭐{% else %}<span style="opacity:.25">⭐</span>{% endif %}
+            {% endfor %}
+          </div>
+
+          <!-- Status Badge -->
+          {% if passed %}
+          <span class="badge badge-green" style="font-size:13px;padding:8px 20px">
+            ✅ PASSED — Certificate Earned!
+          </span>
+          {% else %}
+          <span class="badge badge-rose" style="font-size:13px;padding:8px 20px">
+            ❌ Not Passed — Score 60% to pass
+          </span>
+          {% endif %}
+        </div>
+
+        <!-- Score Breakdown -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-head"><span class="card-title">📊 Score Breakdown</span></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center">
+            <div style="background:rgba(61,202,122,.1);border:1px solid rgba(61,202,122,.25);border-radius:12px;padding:16px">
+              <div style="font-family:var(--font-d);font-size:32px;font-weight:700;color:var(--green)">{{ result.score }}</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:4px">✅ Correct</div>
+            </div>
+            <div style="background:rgba(240,84,122,.1);border:1px solid rgba(240,84,122,.25);border-radius:12px;padding:16px">
+              <div style="font-family:var(--font-d);font-size:32px;font-weight:700;color:var(--rose)">{{ result.total - result.score }}</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:4px">❌ Wrong</div>
+            </div>
+            <div style="background:rgba(240,180,41,.1);border:1px solid rgba(240,180,41,.25);border-radius:12px;padding:16px">
+              <div style="font-family:var(--font-d);font-size:32px;font-weight:700;color:var(--gold)">
+                {% if pct >= 80 %}Gold{% elif pct >= 60 %}Silver{% else %}Bronze{% endif %}
+              </div>
+              <div style="font-size:12px;color:var(--muted);margin-top:4px">🏅 Badge</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-head">
+            <span class="card-title">Your Performance</span>
+            <span style="font-size:13px;color:var(--muted)">Passing: 60%</span>
+          </div>
+          <div style="margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px">
+              <span>Your Score</span><span>{{ pct }}%</span>
+            </div>
+            <div class="prog-bar" style="height:12px">
+              <div class="prog-fill {% if passed %}prog-green{% else %}prog-rose{% endif %}" style="width:{{ pct }}%;transition:width 1s ease"></div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)">
+            <div style="width:3px;height:40px;background:var(--gold);border-radius:2px"></div>
+            <div>Passing line is at 60%<br><strong style="color:var(--text)">{{ 'You passed! 🎉' if passed else 'You need ' ~ (60 - pct) ~ '% more to pass' }}</strong></div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="card">
+          <div class="card-head"><span class="card-title">🎯 Next Steps</span></div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            {% if passed %}
+            <a href="/certificate" class="btn btn-accent" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:14px;font-size:14px">
+              🎖️ Download Certificate
+            </a>
+            {% endif %}
+            <a href="/quiz/{{ course_id }}" class="btn btn-ghost" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:12px">
+              🔁 Retake Quiz
+            </a>
+            <a href="/learn/{{ course_id }}" class="btn btn-ghost" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:12px">
+              📚 Review Course
+            </a>
+            <a href="/courses" class="btn btn-ghost" style="display:flex;align-items:center;justify-content:center;gap:10px;padding:12px">
+              🏠 Back to Courses
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      {% else %}
+      <div class="empty-state">
+        <div class="icon">📝</div>
+        <div>No result found. <a href="/courses" style="color:var(--accent)">Take a quiz first →</a></div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+<script>
+{% if result %}
+{% set pct = ((result.score / result.total) * 100) | int %}
+const passed = {{ 'true' if pct >= 60 else 'false' }};
+
+new Chart(document.getElementById('scoreDonut'), {
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [{{ pct }}, {{ 100 - pct }}],
+      backgroundColor: [
+        passed ? '#3DCA7A' : '#F0547A',
+        'rgba(37,45,66,0.9)'
+      ],
+      borderWidth: 0,
+      hoverOffset: 0
+    }]
+  },
+  options: {
+    responsive: false,
+    width: 160,
+    height: 160,
+    cutout: '72%',
+    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+    animation: { duration: 1000, easing: 'easeInOutQuart' }
+  }
+});
+{% endif %}
+</script>
+</body>
+</html>

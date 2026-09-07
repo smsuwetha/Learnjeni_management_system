@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Profile — LearnJeni</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- ── SIDEBAR ── -->
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-icon">🎓</div>
+      <div>
+        <div class="sb-logo-name">LearnJeni</div>
+        <div class="sb-logo-tag">Student Panel</div>
+      </div>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-section">Learning</div>
+      <a class="sb-link" href="/student_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+      <a class="sb-link" href="/courses"><span class="sb-icon">📚</span> My Courses</a>
+      <a class="sb-link" href="/assignment"><span class="sb-icon">📝</span> Assignments</a>
+
+      <div class="sb-section">Progress</div>
+      <a class="sb-link" href="/attendance"><span class="sb-icon">📋</span> Attendance</a>
+      <a class="sb-link" href="/certificate"><span class="sb-icon">🎖️</span> Certificate</a>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar" style="background:linear-gradient(135deg,#F0B429,#F0547A)">
+          {{ session.name[0] | upper }}
+        </div>
+        <div>
+          <div class="sb-uname">{{ session.name }}</div>
+          <div class="sb-urole">Student</div>
+        </div>
+      </div>
+      <a class="sb-logout" href="/logout">🚪 Logout</a>
+    </div>
+  </div>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">Student Profile</div>
+        <div class="topbar-sub">Complete academic information</div>
+      </div>
+      <div class="topbar-actions">
+        <a class="btn btn-ghost btn-sm" href="/student_dashboard">← Back to Dashboard</a>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <!-- ── HEADER WITH PHOTO ── -->
+      <div class="profile-header">
+        <div class="profile-photo-container">
+          {% if student.photo %}
+            <img src="{{ student.photo }}" alt="Profile Photo" class="profile-photo">
+          {% else %}
+            <div class="profile-photo-placeholder">
+              {{ student.name[0] | upper }}
+            </div>
+          {% endif %}
+        </div>
+        <div class="profile-header-info">
+          <h1 class="profile-name">{{ student.name }}</h1>
+          <p class="profile-email">{{ student.email }}</p>
+          <div class="profile-badges">
+            <span class="badge badge-blue">🎓 Student</span>
+            {% if att_pct >= 75 %}<span class="badge badge-green">✅ Good Standing</span>{% else %}<span class="badge badge-rose">⚠️ At Risk</span>{% endif %}
+            {% if certs > 0 %}<span class="badge badge-gold">🎖️ {{ certs }} Certificate{{ "s" if certs != 1 else "" }}</span>{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MAIN GRID ── -->
+      <div class="grid-profile">
+
+        <!-- LEFT COLUMN -->
+        <div style="display:flex;flex-direction:column;gap:20px">
+
+          <!-- Personal Information -->
+          <div class="card">
+            <div class="card-head"><span class="card-title">📋 Personal Information</span></div>
+            <div class="profile-details">
+              <div class="detail-row">
+                <div class="detail-label">Full Name</div>
+                <div class="detail-value">{{ student.name }}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Email Address</div>
+                <div class="detail-value">{{ student.email }}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Mobile Number</div>
+                <div class="detail-value">{{ student.mobile or "Not provided" }}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Date of Birth</div>
+                <div class="detail-value">
+                  {% if student.dob %}
+                    {{ student.dob.strftime('%B %d, %Y') }}
+                  {% else %}
+                    Not provided
+                  {% endif %}
+                </div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Member Since</div>
+                <div class="detail-value">{{ student.created_at.strftime('%B %d, %Y') }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Academic Information -->
+          <div class="card">
+            <div class="card-head"><span class="card-title">🎓 Academic Information</span></div>
+            <div class="profile-details">
+              <div class="detail-row">
+                <div class="detail-label">Roll Number</div>
+                <div class="detail-value">{{ student.roll_no or "Not assigned" }}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Course</div>
+                <div class="detail-value">{{ student.course or "Not specified" }}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Year</div>
+                <div class="detail-value">{{ student.year or "Not specified" }}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Semester</div>
+                <div class="detail-value">{{ student.semester or "Not specified" }}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">College</div>
+                <div class="detail-value">{{ student.college or "Not specified" }}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Department</div>
+                <div class="detail-value">{{ student.department or "Not specified" }}</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div style="display:flex;flex-direction:column;gap:20px">
+
+          <!-- Statistics -->
+          <div class="stats-grid">
+            <div class="stat-card blue">
+              <div class="stat-icon">📚</div>
+              <div class="stat-label">Enrolled Courses</div>
+              <div class="stat-value">{{ enrolled }}</div>
+              <div class="stat-trend trend-neu">Active enrollment</div>
+            </div>
+
+            <div class="stat-card green">
+              <div class="stat-icon">📋</div>
+              <div class="stat-label">Attendance</div>
+              <div class="stat-value">{{ att_pct }}%</div>
+              <div class="stat-trend {% if att_pct >= 75 %}trend-up{% else %}trend-dn{% endif %}">
+                {% if att_pct >= 75 %}✅ Good Standing{% else %}⚠️ Below 75%{% endif %}
+              </div>
+            </div>
+
+            <div class="stat-card gold">
+              <div class="stat-icon">🏆</div>
+              <div class="stat-label">Latest Quiz Score</div>
+              <div class="stat-value">
+                {% if last_quiz %}{{ last_quiz.score }}/{{ last_quiz.total }}{% else %}—{% endif %}
+              </div>
+              <div class="stat-trend trend-neu">Most recent</div>
+            </div>
+
+            <div class="stat-card purple">
+              <div class="stat-icon">🎖️</div>
+              <div class="stat-label">Certificates</div>
+              <div class="stat-value">{{ certs }}</div>
+              <div class="stat-trend trend-up">Earned</div>
+            </div>
+          </div>
+
+          <!-- Attendance Progress -->
+          <div class="card">
+            <div class="card-head"><span class="card-title">📊 Attendance Status</span></div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+                  <span>Overall Attendance</span><span style="font-weight:600;color:{% if att_pct >= 75 %}var(--green){% else %}var(--rose){% endif %}">{{ att_pct }}%</span>
+                </div>
+                <div class="prog-bar">
+                  <div class="prog-fill {% if att_pct >= 75 %}prog-green{% else %}prog-rose{% endif %}" style="width:{{ att_pct }}%"></div>
+                </div>
+              </div>
+              <div style="font-size:12px;color:var(--muted);padding:12px;background:var(--surface2);border-radius:8px">
+                <strong>Status:</strong>
+                {% if att_pct >= 75 %}
+                  <span style="color:var(--green)">✅ Good Standing — Maintain this!</span>
+                {% else %}
+                  <span style="color:var(--rose)">⚠️ Below minimum — Improve attendance!</span>
+                {% endif %}
+                <br>
+                <strong>Minimum Required:</strong> 75%
+              </div>
+            </div>
+          </div>
+
+          <!-- Performance Summary -->
+          <div class="card">
+            <div class="card-head"><span class="card-title">🎯 Performance Summary</span></div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+                <span style="font-size:13px;color:var(--muted)">Active Courses</span>
+                <span style="font-weight:600;font-size:18px;color:var(--accent)">{{ enrolled }}</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)">
+                <span style="font-size:13px;color:var(--muted)">Certificates Earned</span>
+                <span style="font-weight:600;font-size:18px;color:var(--gold)">{{ certs }}</span>
+              </div>
+              {% if last_quiz %}
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+                <span style="font-size:13px;color:var(--muted)">Last Quiz Performance</span>
+                <div style="text-align:right">
+                  <div style="font-weight:600;font-size:16px;color:{% set pct = ((last_quiz.score / last_quiz.total) * 100) | int %}{% if pct >= 80 %}var(--green){% elif pct >= 60 %}var(--gold){% else %}var(--rose){% endif %}">
+                    {{ pct }}%
+                  </div>
+                  <div style="font-size:11px;color:var(--muted)">{{ last_quiz.score }}/{{ last_quiz.total }}</div>
+                </div>
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Achievements -->
+          <div class="card">
+            <div class="card-head"><span class="card-title">🏅 Achievements</span></div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              {% if enrolled >= 1 %}
+              <div class="achievement-badge" style="background:rgba(91,110,245,.12);border-color:rgba(91,110,245,.3)">
+                <div style="font-size:20px">📚</div>
+                <div style="font-size:11px;font-weight:600;color:var(--accent)">Enrolled</div>
+              </div>
+              {% endif %}
+              {% if att_pct >= 75 %}
+              <div class="achievement-badge" style="background:rgba(61,202,122,.12);border-color:rgba(61,202,122,.3)">
+                <div style="font-size:20px">✅</div>
+                <div style="font-size:11px;font-weight:600;color:var(--green)">Punctual</div>
+              </div>
+              {% endif %}
+              {% if last_quiz and last_quiz.score >= (last_quiz.total * 0.8) %}
+              <div class="achievement-badge" style="background:rgba(240,180,41,.12);border-color:rgba(240,180,41,.3)">
+                <div style="font-size:20px">🥇</div>
+                <div style="font-size:11px;font-weight:600;color:var(--gold)">Top Scorer</div>
+              </div>
+              {% endif %}
+              {% if certs >= 1 %}
+              <div class="achievement-badge" style="background:rgba(155,110,245,.12);border-color:rgba(155,110,245,.3)">
+                <div style="font-size:20px">🎖️</div>
+                <div style="font-size:11px;font-weight:600;color:var(--purple)">Certified</div>
+              </div>
+              {% endif %}
+              {% if enrolled == 0 and att_pct == 0 and certs == 0 %}
+              <div style="color:var(--muted);font-size:12px;padding:12px;width:100%;text-align:center">
+                Complete courses to earn badges! 🚀
+              </div>
+              {% endif %}
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+/* Profile Header Styles */
+.profile-header {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  padding: 24px;
+  background: var(--surface);
+  border-radius: 16px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+}
+
+.profile-photo-container {
+  flex-shrink: 0;
+}
+
+.profile-photo {
+  width: 140px;
+  height: 140px;
+  border-radius: 16px;
+  object-fit: cover;
+  border: 3px solid var(--accent);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.profile-photo-placeholder {
+  width: 140px;
+  height: 140px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #F0B429, #F0547A);
+  color: white;
+  border: 3px solid var(--border);
+}
+
+.profile-header-info {
+  flex: 1;
+  padding-top: 4px;
+}
+
+.profile-name {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 4px 0;
+}
+
+.profile-email {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0 0 12px 0;
+}
+
+.profile-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-blue {
+  background: rgba(91,110,245,0.2);
+  color: var(--accent);
+}
+
+.badge-green {
+  background: rgba(61,202,122,0.2);
+  color: var(--green);
+}
+
+.badge-rose {
+  background: rgba(240,84,122,0.2);
+  color: var(--rose);
+}
+
+.badge-gold {
+  background: rgba(240,180,41,0.2);
+  color: var(--gold);
+}
+
+/* Grid Layout */
+.grid-profile {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 1200px) {
+  .grid-profile {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Profile Details */
+.profile-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.detail-value {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 600;
+  text-align: right;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .profile-header-info {
+    width: 100%;
+  }
+  
+  .profile-badges {
+    justify-content: center;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .detail-value {
+    text-align: left;
+  }
+}
+
+/* Achievement Badges */
+.achievement-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid;
+  width: calc(50% - 4px);
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.achievement-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* Progress Bar */
+.prog-bar {
+  height: 8px;
+  background: var(--surface2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.prog-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+.prog-green {
+  background: var(--green);
+}
+
+.prog-rose {
+  background: var(--rose);
+}
+</style>
+
+</body>
+</html>

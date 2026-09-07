@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Certificate — LearnJeni</title>
+  <link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}">
+</head>
+<body>
+<div class="app-layout" id="main-layout">
+  <div class="sidebar" id="sidebar">
+    <div class="sb-logo"><div class="sb-logo-icon">🎓</div><div><div class="sb-logo-name">LearnJeni</div><div class="sb-logo-tag">Student Panel</div></div></div>
+    <div class="sb-nav"><div class="sb-section">Learning</div>
+      <a class="sb-link" href="/student_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+      <a class="sb-link" href="/courses"><span class="sb-icon">📚</span> My Courses</a>
+      <a class="sb-link" href="/assignment"><span class="sb-icon">📝</span> Assignments</a>
+      <div class="sb-section">Progress</div>
+      <a class="sb-link" href="/attendance"><span class="sb-icon">📋</span> Attendance</a>
+      <a class="sb-link active" href="/certificate"><span class="sb-icon">🎖️</span> Certificate</a>
+    </div>
+    <div class="sb-footer"><div class="sb-user">
+      <div class="sb-avatar" style="background:linear-gradient(135deg,#F0B429,#F0547A)">{{ session.name[0]|upper }}</div>
+      <div><div class="sb-uname">{{ session.name }}</div><div class="sb-urole">Student</div></div></div>
+      <a class="sb-logout" href="/logout">🚪 Logout</a></div>
+  </div>
+
+  <div class="main">
+    <div class="topbar" id="topbar-bar">
+      <div class="topbar-left"><div class="topbar-title">Certificate</div><div class="topbar-sub">Your course completion achievement</div></div>
+      <div class="topbar-actions">
+        <button class="btn btn-accent btn-sm" onclick="printCert()">🖨 Print / Download PDF</button>
+        <a class="btn btn-ghost btn-sm" href="/courses">← Courses</a>
+      </div>
+    </div>
+
+    <div class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for c,m in messages %}<div class="flash {{c}}">{{m}}</div>{% endfor %}{% endif %}
+      {% endwith %}
+
+      <!-- ═══ CERTIFICATE CARD ═══ -->
+      <div class="cert-outer">
+        <div class="cert-wrap" id="certificate">
+
+          <!-- Top rainbow bar -->
+          <div style="position:absolute;top:0;left:0;right:0;height:5px;background:linear-gradient(90deg,var(--accent),var(--teal),var(--purple),var(--gold))"></div>
+          <!-- Corner decorations -->
+          <div style="position:absolute;top:18px;left:24px;font-size:60px;opacity:.04;user-select:none">🎓</div>
+          <div style="position:absolute;bottom:18px;right:24px;font-size:60px;opacity:.04;user-select:none;transform:rotate(180deg)">🎓</div>
+
+          <div style="border:2px solid rgba(240,180,41,.25);border-radius:12px;padding:40px 40px 32px">
+
+            <!-- Header -->
+            <div style="text-align:center;margin-bottom:20px">
+              <div style="font-size:52px;margin-bottom:8px">🏆</div>
+              <div style="font-family:var(--font-d);font-size:34px;font-weight:700;color:var(--gold);margin-bottom:6px;letter-spacing:1px">
+                Certificate of Excellence
+              </div>
+              <div style="font-size:12px;color:var(--muted);letter-spacing:3px;text-transform:uppercase">
+                LearnJeni Learning Management System
+              </div>
+            </div>
+
+            <!-- Divider -->
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+              <div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold))"></div>
+              <div style="color:var(--gold);font-size:16px">✦</div>
+              <div style="flex:1;height:1px;background:linear-gradient(90deg,var(--gold),transparent)"></div>
+            </div>
+
+            <!-- MAIN BODY: Photo + Details side by side -->
+            <div style="display:flex;align-items:center;gap:36px;margin-bottom:20px;justify-content:center">
+
+              <!-- STUDENT PHOTO — show only if available (set during registration) -->
+              {% if photo_url %}
+              <div style="flex-shrink:0;text-align:center">
+                <div style="width:110px;height:110px;border-radius:50%;border:3px solid var(--gold);overflow:hidden;box-shadow:0 0 0 4px rgba(240,180,41,.2);margin:0 auto 8px">
+                  <img src="{{ photo_url }}" alt="{{ name }}" style="width:100%;height:100%;object-fit:cover">
+                </div>
+                <div style="font-size:10px;color:var(--muted)">Student Photo</div>
+              </div>
+              {% endif %}
+
+              <!-- CERTIFICATE TEXT -->
+              <div style="text-align:center">
+                <div style="font-size:13px;color:var(--muted);margin-bottom:8px">This is to proudly certify that</div>
+                <div style="font-family:var(--font-d);font-size:30px;font-weight:700;color:var(--text);margin-bottom:8px;line-height:1.2">
+                  {{ name }}
+                </div>
+                <div style="font-size:13px;color:var(--soft);margin-bottom:10px">has successfully completed the course</div>
+                <div style="font-family:var(--font-d);font-size:20px;font-weight:700;color:var(--accent);margin-bottom:14px">
+                  📚 {{ course }}
+                </div>
+
+                <!-- Score + Badge inline -->
+                <div style="display:inline-flex;align-items:center;gap:14px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;padding:10px 22px;margin-bottom:12px">
+                  <div style="text-align:center">
+                    <div style="font-size:22px;font-weight:700;color:var(--gold)">{{ score }}%</div>
+                    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Score</div>
+                  </div>
+                  <div style="width:1px;height:36px;background:var(--border)"></div>
+                  <div style="text-align:center">
+                    <div style="font-size:22px">
+                      {% if badge == 'Gold' %}🥇{% elif badge == 'Silver' %}🥈{% else %}🥉{% endif %}
+                    </div>
+                    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">{{ badge }}</div>
+                  </div>
+                </div>
+
+                <!-- Stars -->
+                <div style="font-size:22px;letter-spacing:4px">
+                  {% for i in range(stars) %}⭐{% endfor %}
+                  {% for i in range(5-stars) %}<span style="opacity:.2">⭐</span>{% endfor %}
+                </div>
+              </div>
+            </div>
+
+            <!-- Bottom divider -->
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+              <div style="flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold))"></div>
+              <div style="color:var(--gold);font-size:16px">✦</div>
+              <div style="flex:1;height:1px;background:linear-gradient(90deg,var(--gold),transparent)"></div>
+            </div>
+
+            <!-- Footer details -->
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;text-align:center">
+              <div>
+                <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Issued On</div>
+                <div style="font-size:13px;font-weight:600;color:var(--text)">{{ date }}</div>
+              </div>
+              <div>
+                <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Certificate ID</div>
+                <div style="font-size:12px;font-weight:600;color:var(--accent);font-family:monospace">LF-{{ '%04d' | format(range(1000,9999)|random) }}</div>
+              </div>
+              <div>
+                <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Authorized By</div>
+                <div style="font-size:13px;font-weight:600;color:var(--text)">LearnJeni LMS</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div style="display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap">
+        <button class="btn btn-accent" style="padding:12px 28px;font-size:14px" onclick="printCert()">
+          🖨 Print / Save as PDF
+        </button>
+        <a href="/courses" class="btn btn-ghost" style="padding:12px 24px;font-size:14px">📚 More Courses</a>
+        <a href="/student_dashboard" class="btn btn-ghost" style="padding:12px 24px;font-size:14px">⊞ Dashboard</a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+.cert-outer{display:flex;justify-content:center;padding:10px 0;}
+.cert-wrap{width:100%;max-width:800px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:48px;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+@media print{
+  body{background:white !important;}
+  #sidebar,#topbar-bar,.topbar-actions,.btn,form{display:none !important;}
+  .main{margin-left:0 !important;}
+  .page-content{padding:0 !important;}
+  .cert-wrap{background:white !important;color:black !important;border:3px solid gold !important;box-shadow:none !important;max-width:100% !important;page-break-inside:avoid;}
+  .cert-wrap *{color:black !important;}
+  img{-webkit-print-color-adjust:exact;}
+  *{-webkit-print-color-adjust:exact !important;color-adjust:exact !important;}
+}
+</style>
+<script>function printCert(){window.print();}</script>
+</body></html>

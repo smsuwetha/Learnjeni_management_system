@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Attendance — LearnForge</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-icon">🎓</div>
+      <div><div class="sb-logo-name">LearnJeni</div><div class="sb-logo-tag">Student Panel</div></div>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-section">Learning</div>
+      <a class="sb-link" href="/student_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+      <a class="sb-link" href="/courses"><span class="sb-icon">📚</span> My Courses</a>
+      <a class="sb-link" href="/assignment"><span class="sb-icon">📝</span> Assignments</a>
+      <div class="sb-section">Progress</div>
+      <a class="sb-link active" href="/attendance"><span class="sb-icon">📋</span> Attendance</a>
+      <a class="sb-link" href="/certificate"><span class="sb-icon">🎖️</span> Certificate</a>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar" style="background:linear-gradient(135deg,#F0B429,#F0547A)">{{ session.name[0]|upper }}</div>
+        <div><div class="sb-uname">{{ session.name }}</div><div class="sb-urole">Student</div></div>
+      </div>
+      <a class="sb-logout" href="/logout">🚪 Logout</a>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">My Attendance</div>
+        <div class="topbar-sub">Track your class presence and records</div>
+      </div>
+      <div class="topbar-actions">
+        <a class="btn btn-accent btn-sm" href="/mark_my_attendance">✅ Mark Today</a>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for c,m in messages %}<div class="flash {{c}}">{{m}}</div>{% endfor %}{% endif %}
+      {% endwith %}
+
+      <div class="page-title">Attendance Report</div>
+      <div class="page-sub">Your attendance summary across all enrolled courses</div>
+
+      <!-- MAIN ATTENDANCE CARD -->
+      <div style="display:grid;grid-template-columns:320px 1fr;gap:16px;margin-bottom:20px;align-items:start">
+
+        <!-- Circle Card -->
+        <div class="card" style="text-align:center;padding:32px 20px">
+          <div style="position:relative;width:160px;height:160px;margin:0 auto 20px">
+            <canvas id="attCircle"></canvas>
+            <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column">
+              <div style="font-family:var(--font-d);font-size:36px;font-weight:700;color:{% if percentage >= 75 %}var(--green){% elif percentage >= 60 %}var(--gold){% else %}var(--rose){% endif %}">
+                {{ percentage }}%
+              </div>
+              <div style="font-size:11px;color:var(--muted)">Overall</div>
+            </div>
+          </div>
+
+          <div style="font-size:16px;font-weight:600;margin-bottom:6px">
+            {% if percentage >= 75 %}✅ Good Standing
+            {% elif percentage >= 60 %}⚠️ Average
+            {% else %}❌ At Risk{% endif %}
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:20px">
+            Minimum required: <strong style="color:var(--text)">75%</strong>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--text)">{{ total }}</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Total</div>
+            </div>
+            <div style="background:rgba(61,202,122,.1);border:1px solid rgba(61,202,122,.25);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--green)">{{ present }}</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Present</div>
+            </div>
+            <div style="background:rgba(240,84,122,.1);border:1px solid rgba(240,84,122,.25);border-radius:10px;padding:12px;text-align:center">
+              <div style="font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--rose)">{{ total - present }}</div>
+              <div style="font-size:10px;color:var(--muted);margin-top:2px">Absent</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Info Card -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+
+          <!-- Progress Bar Card -->
+          <div class="card">
+            <div class="card-head"><span class="card-title">📈 Attendance Progress</span></div>
+            <div style="margin-bottom:14px">
+              <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px">
+                <span>Your Attendance</span><span style="font-weight:600;color:var(--text)">{{ percentage }}%</span>
+              </div>
+              <div class="prog-bar" style="height:14px;border-radius:7px">
+                <div class="prog-fill {% if percentage >= 75 %}prog-green{% elif percentage >= 60 %}prog-gold{% else %}prog-rose{% endif %}"
+                     style="width:{{ percentage }}%;border-radius:7px;transition:width 1s ease"></div>
+              </div>
+            </div>
+            <div style="display:flex;gap:3px;flex-wrap:wrap">
+              <!-- Visual attendance blocks -->
+              {% for i in range(total) %}
+              <div style="width:14px;height:14px;border-radius:3px;background:{% if i < present %}rgba(61,202,122,.5){% else %}rgba(240,84,122,.35){% endif %}"></div>
+              {% else %}
+              <div style="font-size:13px;color:var(--muted)">No attendance records yet.</div>
+              {% endfor %}
+            </div>
+            <div style="display:flex;gap:16px;margin-top:10px;font-size:11px;color:var(--muted)">
+              <span style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:rgba(61,202,122,.5)"></div>Present</span>
+              <span style="display:flex;align-items:center;gap:5px"><div style="width:10px;height:10px;border-radius:2px;background:rgba(240,84,122,.35)"></div>Absent</span>
+            </div>
+          </div>
+
+          <!-- Requirements -->
+          <div class="card">
+            <div class="card-head"><span class="card-title">📋 Attendance Requirements</span></div>
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:13px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="color:var(--soft)">Minimum Required</span>
+                <span class="badge badge-gold">75%</span>
+              </div>
+              <div style="height:1px;background:var(--border)"></div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="color:var(--soft)">Your Status</span>
+                {% if percentage >= 75 %}
+                <span class="badge badge-green">✅ Eligible</span>
+                {% else %}
+                <span class="badge badge-rose">⚠️ Not Eligible</span>
+                {% endif %}
+              </div>
+              <div style="height:1px;background:var(--border)"></div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="color:var(--soft)">Classes Needed</span>
+                <span style="font-weight:600;color:var(--text)">
+                  {% if percentage >= 75 %}0 more
+                  {% else %}{{ [((75 * total // 100) - present + 1), 0] | max }} more{% endif %}
+                </span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Bar Chart Card -->
+      <div class="card">
+        <div class="card-head"><span class="card-title">📊 Weekly Attendance Pattern</span></div>
+        <div style="height:200px">
+          <canvas id="weekChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+// Attendance Donut
+new Chart(document.getElementById('attCircle'), {
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [{{ percentage }}, {{ 100 - percentage }}],
+      backgroundColor: [
+        {% if percentage >= 75 %}'#3DCA7A'{% elif percentage >= 60 %}'#F0B429'{% else %}'#F0547A'{% endif %},
+        'rgba(37,45,66,0.8)'
+      ],
+      borderWidth: 0,
+      hoverOffset: 0
+    }]
+  },
+  options: {
+    responsive: false,
+    width: 160, height: 160,
+    cutout: '72%',
+    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+    animation: { duration: 1200, easing: 'easeInOutQuart' }
+  }
+});
+
+// Weekly bar chart
+new Chart(document.getElementById('weekChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    datasets: [
+      {
+        label: 'Present',
+        data: [1, 1, 0, 1, 1, 1],
+        backgroundColor: 'rgba(61,202,122,0.7)',
+        borderRadius: 6
+      },
+      {
+        label: 'Absent',
+        data: [0, 0, 1, 0, 0, 0],
+        backgroundColor: 'rgba(240,84,122,0.5)',
+        borderRadius: 6
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: '#EEF0F8', font: { family: 'Sora' } } }
+    },
+    scales: {
+      x: { ticks: { color: '#6B7A99' }, grid: { color: 'rgba(37,45,66,0.8)' } },
+      y: { ticks: { color: '#6B7A99', stepSize: 1 }, grid: { color: 'rgba(37,45,66,0.8)' }, max: 2 }
+    }
+  }
+});
+</script>
+</body>
+</html>

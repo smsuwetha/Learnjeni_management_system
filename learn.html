@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ course.title }} — Learn — LearnJeni</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="app-layout">
+  <div class="sidebar">
+    <div class="sb-logo"><div class="sb-logo-icon">🎓</div><div><div class="sb-logo-name">LearnJeni</div><div class="sb-logo-tag">Student Panel</div></div></div>
+    <div class="sb-nav">
+      <div class="sb-section">Learning</div>
+      <a class="sb-link" href="/student_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+      <a class="sb-link active" href="/courses"><span class="sb-icon">📚</span> My Courses</a>
+      <a class="sb-link" href="/assignment"><span class="sb-icon">📝</span> Assignments</a>
+      <div class="sb-section">Progress</div>
+      <a class="sb-link" href="/attendance"><span class="sb-icon">📋</span> Attendance</a>
+      <a class="sb-link" href="/certificate"><span class="sb-icon">🎖️</span> Certificate</a>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar" style="background:linear-gradient(135deg,#F0B429,#F0547A)">{{ session.name[0]|upper }}</div>
+        <div><div class="sb-uname">{{ session.name }}</div><div class="sb-urole">Student</div></div>
+      </div>
+      <a class="sb-logout" href="/logout">🚪 Logout</a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">{{ course.title }}</div>
+        <div class="topbar-sub" id="current-lesson-name">
+          {% if videos %}Lesson 1: {{ videos[0].title or 'Introduction' }}{% else %}No lessons yet{% endif %}
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <a class="btn btn-accent btn-sm" href="/quiz/{{ course.id }}">📝 Take Quiz</a>
+        <a class="btn btn-ghost btn-sm" href="/courses">← Back</a>
+      </div>
+    </div>
+
+    <div class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for c,m in messages %}<div class="flash {{c}}">{{m}}</div>{% endfor %}{% endif %}
+      {% endwith %}
+
+      <div class="learn-layout">
+
+        <!-- LEFT COLUMN -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+
+          <!-- VIDEO PLAYER CARD -->
+          <div class="card" style="padding:0;overflow:hidden">
+            <div id="video-box" style="background:#000;aspect-ratio:16/9;position:relative;overflow:hidden">
+
+              {% if videos and videos[0].video_url %}
+                {% if 'youtube' in videos[0].video_url or 'youtu' in videos[0].video_url %}
+                  <iframe id="yt-frame" src="{{ videos[0].video_url }}"
+                    frameborder="0" allowfullscreen
+                    style="width:100%;height:100%;border:none;position:absolute;top:0;left:0">
+                  </iframe>
+                  <video id="mp4-player" controls
+                    style="width:100%;height:100%;object-fit:contain;display:none;position:absolute;top:0;left:0">
+                    <source src="" type="video/mp4">
+                  </video>
+                {% else %}
+                  <video id="mp4-player" controls
+                    style="width:100%;height:100%;object-fit:contain;position:absolute;top:0;left:0">
+                    <source src="{{ videos[0].video_url }}" type="video/mp4">
+                  </video>
+                  <iframe id="yt-frame" src=""
+                    frameborder="0" allowfullscreen
+                    style="width:100%;height:100%;border:none;display:none;position:absolute;top:0;left:0">
+                  </iframe>
+                {% endif %}
+              {% else %}
+                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#555;position:absolute;top:0;left:0">
+                  <div style="font-size:56px;margin-bottom:12px">🎥</div>
+                  <div style="font-size:14px">{% if videos %}Select a lesson to play{% else %}No videos uploaded yet{% endif %}</div>
+                </div>
+                <video id="mp4-player" controls style="display:none;position:absolute;top:0;left:0;width:100%;height:100%"><source src="" type="video/mp4"></video>
+                <iframe id="yt-frame" src="" frameborder="0" style="display:none;position:absolute;top:0;left:0;width:100%;height:100%"></iframe>
+              {% endif %}
+            </div>
+
+            <!-- Info bar -->
+            <div style="padding:14px 18px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+              <div>
+                <div style="font-size:14px;font-weight:600;margin-bottom:3px" id="vid-title">
+                  {% if videos %}{{ videos[0].title or 'Lesson 1' }}{% else %}{{ course.title }}{% endif %}
+                </div>
+                <div style="font-size:12px;color:var(--muted)">
+                  📚 {{ course.title }}
+                  {% if course.department %} · <span class="badge badge-blue" style="font-size:10px">{{ course.department }}</span>{% endif %}
+                </div>
+              </div>
+              <span class="badge badge-green" id="lesson-badge">Lesson 1 / {{ videos|length }}</span>
+            </div>
+          </div>
+
+          <!-- PROGRESS CARD -->
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">📊 Course Progress</span>
+              <span id="prog-pct" style="font-size:13px;color:var(--green);font-weight:600">0% Complete</span>
+            </div>
+            <div class="prog-bar" style="height:10px;margin-bottom:16px">
+              <div class="prog-fill prog-blue" id="prog-bar-fill" style="width:0%;transition:width .4s"></div>
+            </div>
+            <div style="display:flex;gap:10px">
+              <button class="btn btn-ghost" style="flex:1;padding:10px" onclick="prevLesson()">⬅ Prev</button>
+              <button class="btn btn-accent" style="flex:1;padding:10px" onclick="markDone()">✅ Mark Done</button>
+              <button class="btn btn-teal"  style="flex:1;padding:10px" onclick="nextLesson()">Next ➡</button>
+            </div>
+          </div>
+
+          <!-- ABOUT + PDF CARD -->
+          <div class="card">
+            <div class="card-head"><span class="card-title">📖 About This Course</span></div>
+            <p style="font-size:13.5px;color:var(--soft);line-height:1.8;margin-bottom:0">
+              {{ course.description or 'No description provided.' }}
+            </p>
+            {% if course.notes_url %}
+            <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+              <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px">📄 Study Materials</div>
+              <a href="{{ course.notes_url }}" target="_blank"
+                 class="btn btn-gold" style="display:inline-flex;align-items:center;gap:8px;padding:10px 18px">
+                📥 Download PDF Notes
+              </a>
+            </div>
+            {% endif %}
+          </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: Playlist -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+
+          <!-- LESSON LIST -->
+          <div class="playlist-card">
+            <div class="playlist-head">
+              📋 Lessons
+              <span class="badge badge-blue" style="float:right">{{ videos|length }}</span>
+            </div>
+
+            {% if videos %}
+              {% for v in videos %}
+              <div class="lesson-item {% if loop.first %}active-lesson{% endif %}"
+                   id="lesson-{{ loop.index0 }}"
+                   onclick="loadLesson({{ loop.index0 }})">
+                <div class="lesson-num" id="lnum-{{ loop.index0 }}">{{ loop.index }}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+                    {{ v.title or 'Lesson ' ~ loop.index }}
+                  </div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px">
+                    {% if v.video_url %}
+                      {% if 'youtube' in v.video_url %}▶ YouTube Video
+                      {% else %}🎬 MP4 Video{% endif %}
+                    {% else %}⚠ No video{% endif %}
+                  </div>
+                </div>
+                <div class="lesson-dur">{{ v.duration or '—' }}</div>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div style="padding:32px;text-align:center;color:var(--muted);font-size:13px">
+                <div style="font-size:40px;margin-bottom:10px">🎥</div>
+                No videos yet.<br>Check back soon!
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- PDF QUICK DOWNLOAD -->
+          {% if course.notes_url %}
+          <div class="card" style="background:rgba(240,180,41,.06);border-color:rgba(240,180,41,.3)">
+            <div style="text-align:center;padding:6px 0">
+              <div style="font-size:32px;margin-bottom:8px">📄</div>
+              <div style="font-size:13px;font-weight:600;margin-bottom:4px">PDF Notes Available</div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Study material for this course</div>
+              <a href="{{ course.notes_url }}" target="_blank"
+                 class="btn btn-gold" style="display:block;padding:10px;text-align:center">
+                📥 Download PDF
+              </a>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- QUIZ CTA -->
+          <div class="card" style="background:linear-gradient(135deg,rgba(91,110,245,.1),rgba(155,110,245,.07));border-color:rgba(91,110,245,.25)">
+            <div style="text-align:center;padding:8px 0">
+              <div style="font-size:28px;margin-bottom:8px">📝</div>
+              <div style="font-size:14px;font-weight:600;margin-bottom:6px">Ready for the quiz?</div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Score 60%+ to earn a certificate 🏆</div>
+              <a href="/quiz/{{ course.id }}" class="btn btn-accent" style="display:block;padding:11px;text-align:center">
+                Take Quiz →
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.learn-layout { display:grid; grid-template-columns:1fr 280px; gap:16px; align-items:start; }
+@media(max-width:1000px) { .learn-layout { grid-template-columns:1fr; } }
+</style>
+
+<script>
+// ── Lesson data from server ──────────────────────
+const LESSONS = [
+  {% for v in videos %}
+  {
+    url:   "{{ v.video_url or '' }}",
+    title: "{{ (v.title or 'Lesson ' ~ loop.index)|replace('"','\\\"') }}",
+    isYT:  {{ 'true' if ('youtube' in (v.video_url or '') or 'youtu' in (v.video_url or '')) else 'false' }}
+  }{% if not loop.last %},{% endif %}
+  {% endfor %}
+];
+
+let currentLesson = 0;
+const totalLessons = LESSONS.length;
+let completed = new Set();
+
+// ── Load a lesson into the player ───────────────
+function loadLesson(idx) {
+  // Sidebar highlight
+  document.querySelectorAll('[id^="lesson-"]').forEach(el => el.classList.remove('active-lesson'));
+  const item = document.getElementById('lesson-' + idx);
+  if (item) item.classList.add('active-lesson');
+  currentLesson = idx;
+
+  const data = LESSONS[idx];
+  const mp4  = document.getElementById('mp4-player');
+  const ytf  = document.getElementById('yt-frame');
+
+  // Update labels
+  if (data) {
+    document.getElementById('vid-title').textContent = data.title;
+    document.getElementById('current-lesson-name').textContent =
+      'Lesson ' + (idx + 1) + ': ' + data.title;
+  }
+  document.getElementById('lesson-badge').textContent =
+    'Lesson ' + (idx + 1) + ' / ' + totalLessons;
+
+  if (!data || !data.url) {
+    mp4.style.display = 'none';
+    ytf.style.display  = 'none';
+    return;
+  }
+
+  if (data.isYT) {
+    // Stop MP4, show YouTube
+    if (!mp4.paused) mp4.pause();
+    mp4.style.display  = 'none';
+    ytf.src            = data.url;
+    ytf.style.display  = 'block';
+  } else {
+    // Stop YouTube (reset src), show MP4
+    ytf.src            = '';
+    ytf.style.display  = 'none';
+    mp4.style.display  = 'block';
+    mp4.querySelector('source').src = data.url;
+    mp4.load();
+    mp4.play().catch(() => {}); // autoplay (browser may block — user can press play)
+  }
+
+  updateProgress();
+}
+
+// ── Mark lesson complete ─────────────────────────
+function markDone() {
+  completed.add(currentLesson);
+  const num = document.getElementById('lnum-' + currentLesson);
+  if (num) {
+    num.style.background = 'rgba(61,202,122,.25)';
+    num.style.color = 'var(--green)';
+    num.textContent = '✓';
+  }
+  updateProgress();
+  // Auto-advance after short delay
+  setTimeout(nextLesson, 500);
+}
+
+// ── Progress bar ─────────────────────────────────
+function updateProgress() {
+  const pct = totalLessons > 0 ? Math.round((completed.size / totalLessons) * 100) : 0;
+  document.getElementById('prog-bar-fill').style.width = pct + '%';
+  document.getElementById('prog-pct').textContent = pct + '% Complete';
+  document.getElementById('prog-pct').style.color = pct >= 100 ? 'var(--gold)' : 'var(--green)';
+}
+
+// ── Navigation ───────────────────────────────────
+function nextLesson() {
+  if (currentLesson < totalLessons - 1) loadLesson(currentLesson + 1);
+}
+function prevLesson() {
+  if (currentLesson > 0) loadLesson(currentLesson - 1);
+}
+</script>
+</body>
+</html>

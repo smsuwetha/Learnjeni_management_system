@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Register — LearnJeni LMS</title>
+  <link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}">
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-bg"></div><div class="auth-grid"></div>
+  <div class="auth-card auth-card-wide">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🎓</div>
+      <div><div class="auth-logo-text">LearnJeni LMS</div><div class="auth-logo-sub">Create Your Account</div></div>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}{% for c,m in messages %}<div class="flash {{c}}">{{m}}</div>{% endfor %}{% endif %}
+    {% endwith %}
+
+    <form method="POST" action="/register" enctype="multipart/form-data">
+
+      <!-- ── ROLE SELECTOR ── -->
+      <div class="form-group">
+        <label class="form-label">Register As</label>
+        <div class="role-pills">
+          <button type="button" class="role-pill active" onclick="setRole('student', this)">🎓 Student</button>
+          <button type="button" class="role-pill"        onclick="setRole('staff',   this)">👩‍🏫 Staff</button>
+        </div>
+        <input type="hidden" name="role" id="role-val" value="student">
+      </div>
+
+      <!-- ── PROFILE PHOTO (Student only) ── -->
+      <div id="photo-section" class="form-group">
+        <label class="form-label">
+          📸 Profile Photo
+          <span style="color:var(--muted);font-weight:400">(optional — appears on your Certificate)</span>
+        </label>
+        <div style="display:flex;align-items:center;gap:16px">
+          <div id="photo-preview"
+               style="width:80px;height:80px;border-radius:50%;border:2px dashed var(--border2);
+                      background:var(--surface2);display:flex;align-items:center;justify-content:center;
+                      font-size:28px;flex-shrink:0;overflow:hidden;cursor:pointer"
+               onclick="document.getElementById('photo-inp').click()">👤</div>
+          <div>
+            <button type="button" class="btn btn-gold btn-sm"
+                    onclick="document.getElementById('photo-inp').click()">📷 Choose Photo</button>
+            <div style="font-size:11px;color:var(--muted);margin-top:6px">
+              JPG, PNG, GIF · Max 5MB<br>This photo will appear on your certificate
+            </div>
+            <input type="file" name="photo" id="photo-inp" accept="image/*" style="display:none"
+                   onchange="previewPhoto(this)">
+          </div>
+        </div>
+      </div>
+
+      <!-- ── PERSONAL INFO ── -->
+      <div class="form-section">Personal Information</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Full Name *</label>
+          <input class="form-input" type="text" name="name" placeholder="John Doe" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email *</label>
+          <input class="form-input" type="email" name="email" placeholder="john@email.com" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Mobile</label>
+          <input class="form-input" type="tel" name="mobile" placeholder="+91 99999 00000">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date of Birth</label>
+          <input class="form-input" type="date" name="dob">
+        </div>
+      </div>
+
+      <!-- ── STUDENT FIELDS ── -->
+      <div id="student-fields">
+        <div class="form-section">Academic Details</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Roll Number</label>
+            <input class="form-input" type="text" name="roll_no" placeholder="21CS001">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Course</label>
+            <input class="form-input" type="text" name="course" placeholder="B.Tech CSE">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Year</label>
+            <select class="form-select" name="year">
+              <option>1st Year</option><option>2nd Year</option>
+              <option>3rd Year</option><option>4th Year</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Semester</label>
+            <select class="form-select" name="semester">
+              <option>Sem 1</option><option>Sem 2</option><option>Sem 3</option><option>Sem 4</option>
+              <option>Sem 5</option><option>Sem 6</option><option>Sem 7</option><option>Sem 8</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Department</label>
+            <input class="form-input" type="text" name="department" placeholder="Computer Science">
+          </div>
+          <div class="form-group">
+            <label class="form-label">College</label>
+            <input class="form-input" type="text" name="college" placeholder="College Name">
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STAFF FIELDS ── -->
+      <div id="staff-fields" style="display:none">
+        <div class="form-section">Staff Details</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Staff ID</label>
+            <input class="form-input" type="text" name="staff_id" placeholder="STF001">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Department</label>
+            <input class="form-input" type="text" name="department" placeholder="Computer Science">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Designation</label>
+            <input class="form-input" type="text" name="designation" placeholder="Associate Professor">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Experience</label>
+            <input class="form-input" type="text" name="experience" placeholder="5 Years">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Qualification</label>
+          <input class="form-input" type="text" name="qualification" placeholder="Ph.D. / M.Tech">
+        </div>
+      </div>
+
+      <!-- ── PASSWORD ── -->
+      <div class="form-section">Account Security</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Password *</label>
+          <input class="form-input" type="password" name="password" placeholder="••••••••" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm Password *</label>
+          <input class="form-input" type="password" name="confirm_password" placeholder="••••••••" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary">Create Account →</button>
+    </form>
+
+    <div class="auth-switch">Already have an account? <a href="/login">Sign In</a></div>
+  </div>
+</div>
+
+<script>
+function setRole(role, btn) {
+  document.getElementById('role-val').value = role;
+
+  // Highlight active pill
+  document.querySelectorAll('.role-pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+
+  // Show/hide role-specific fields
+  document.getElementById('student-fields').style.display = role === 'student' ? 'block' : 'none';
+  document.getElementById('staff-fields').style.display   = role === 'staff'   ? 'block' : 'none';
+
+  // Show photo only for student
+  document.getElementById('photo-section').style.display  = role === 'student' ? 'block' : 'none';
+}
+
+function previewPhoto(inp) {
+  if (inp.files && inp.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const preview = document.getElementById('photo-preview');
+      preview.innerHTML = '<img src="' + e.target.result + '" style="width:100%;height:100%;object-fit:cover">';
+    };
+    reader.readAsDataURL(inp.files[0]);
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Upload Video — LearnJeni</title>
+<link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"></head>
+<body><div class="app-layout">
+<div class="sidebar">
+  <div class="sb-logo"><div class="sb-logo-icon">👩‍🏫</div><div><div class="sb-logo-name">LearnJeni</div><div class="sb-logo-tag">Staff Panel</div></div></div>
+  <div class="sb-nav"><div class="sb-section">Main</div>
+    <a class="sb-link" href="/staff_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+    <a class="sb-link" href="/add_course"><span class="sb-icon">➕</span> Add Course</a>
+    <a class="sb-link" href="/view_students"><span class="sb-icon">👥</span> View Students</a>
+    <a class="sb-link" href="/mark_attendance"><span class="sb-icon">📋</span> Mark Attendance</a>
+    <a class="sb-link" href="/manage_quiz"><span class="sb-icon">📝</span> Manage Quiz</a>
+    <a class="sb-link active" href="/upload_video"><span class="sb-icon">🎥</span> Upload Video</a>
+  </div>
+  <div class="sb-footer"><div class="sb-user"><div class="sb-avatar" style="background:linear-gradient(135deg,#2ECEC4,#5B6EF5)">👩‍🏫</div>
+    <div><div class="sb-uname">{{ session.name }}</div><div class="sb-urole">Staff Member</div></div></div>
+    <a class="sb-logout" href="/logout">🚪 Logout</a></div>
+</div>
+<div class="main">
+  <div class="topbar"><div class="topbar-left"><div class="topbar-title">Upload Video</div><div class="topbar-sub">Upload and manage lecture videos</div></div></div>
+  <div class="page-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}{% for c,m in messages %}<div class="flash {{c}}">{{m}}</div>{% endfor %}{% endif %}{% endwith %}
+
+    <!-- UPLOAD FORM -->
+    <form method="POST" action="/upload_video" enctype="multipart/form-data">
+      <div class="card" style="max-width:720px;margin-bottom:24px">
+        <div class="card-head"><span class="card-title">🎥 Upload New Video</span></div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Select Course *</label>
+            <select class="form-select" name="course_id" required>
+              <option value="">-- Select Course --</option>
+              {% for c in courses %}<option value="{{ c.id }}">{{ c.title }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Lesson Title *</label>
+            <input class="form-input" type="text" name="title" placeholder="e.g. Lesson 1 - Introduction" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Duration (e.g. 12:30)</label>
+            <input class="form-input" type="text" name="duration" placeholder="12:30">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description (optional)</label>
+            <input class="form-input" type="text" name="description" placeholder="Brief lesson description">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Upload Video File (MP4, MOV, AVI, MKV)</label>
+          <div class="upload-zone" onclick="document.getElementById('vfile').click()">
+            <div class="upload-icon">🎬</div>
+            <div class="upload-title" id="file-label">Drag & Drop or Click to Browse</div>
+            <div class="upload-sub">MP4 · MOV · AVI · MKV · Max 500MB</div>
+            <input id="vfile" type="file" name="video_file" accept=".mp4,.mov,.avi,.mkv,video/*" style="display:none"
+                   onchange="document.getElementById('file-label').textContent=this.files[0]?this.files[0].name:'Click to Browse'">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Or Paste YouTube Embed URL</label>
+          <input class="form-input" type="url" name="video_url" placeholder="https://www.youtube.com/embed/VIDEO_ID">
+          <small style="color:var(--muted);font-size:11px">File upload இல்லை என்றால் மட்டும் YouTube URL பயன்படுத்துங்க</small>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button type="submit" class="btn btn-accent" style="width:auto;padding:10px 28px">🎥 Upload Video</button>
+          <a href="/staff_dashboard" class="btn btn-ghost" style="padding:10px 20px">Cancel</a>
+        </div>
+      </div>
+    </form>
+
+    <!-- VIDEO LIST WITH EDIT / DELETE -->
+    <div class="card">
+      <div class="card-head">
+        <span class="card-title">📹 My Uploaded Videos</span>
+        <span class="badge badge-blue">{{ videos|length }} videos</span>
+      </div>
+      {% if videos %}
+      <div class="table-wrap"><table>
+        <thead><tr><th>Course</th><th>Lesson Title</th><th>Description</th><th>Duration</th><th>Uploaded</th><th>Actions</th></tr></thead>
+        <tbody>
+        {% for v in videos %}
+        <tr>
+          <td><span class="badge badge-teal">{{ v.course_title }}</span></td>
+          <td class="td-name">{{ v.title or 'Untitled' }}</td>
+          <td style="color:var(--muted);font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ v.description or '—' }}</td>
+          <td>{{ v.duration or '—' }}</td>
+          <td>{{ v.uploaded_at.strftime('%d %b %Y') if v.uploaded_at else '—' }}</td>
+          <td style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+            {% if v.video_url %}
+              {% if 'youtube' in v.video_url %}
+                <a href="{{ v.video_url }}" target="_blank" class="btn btn-sm btn-teal">▶ Watch</a>
+              {% else %}
+                <a href="{{ v.video_url }}" target="_blank" class="btn btn-sm btn-teal">▶ Preview</a>
+              {% endif %}
+            {% endif %}
+            <a href="/edit_video/{{ v.id }}" class="btn btn-sm btn-ghost">✏️ Edit</a>
+            <a href="/delete_video/{{ v.id }}" class="btn btn-sm btn-red"
+               onclick="return confirm('Delete \'{{ v.title }}\' video?')">🗑 Delete</a>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table></div>
+      {% else %}
+      <div class="empty-state"><div class="icon">🎥</div><div>No videos uploaded yet.</div></div>
+      {% endif %}
+    </div>
+  </div>
+</div></div></body></html>

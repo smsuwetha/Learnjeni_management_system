@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Manage Videos — LearnJeni</title>
+<link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"></head>
+<body><div class="app-layout">
+<div class="sidebar">
+  <div class="sb-logo"><div class="sb-logo-icon">🎓</div><div><div class="sb-logo-name">LearnJeni</div><div class="sb-logo-tag">Admin Panel</div></div></div>
+  <div class="sb-nav"><div class="sb-section">Main</div>
+    <a class="sb-link" href="/admin_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+    <a class="sb-link" href="/manage_students"><span class="sb-icon">👨‍🎓</span> Students</a>
+    <a class="sb-link" href="/manage_staff"><span class="sb-icon">👩‍🏫</span> Staff</a>
+    <a class="sb-link" href="/manage_courses"><span class="sb-icon">📚</span> Courses</a>
+    <a class="sb-link active" href="/admin_videos"><span class="sb-icon">🎥</span> Manage Videos</a>
+    <div class="sb-section">Reports</div>
+    <a class="sb-link" href="/analytics"><span class="sb-icon">📊</span> Analytics</a>
+  </div>
+  <div class="sb-footer"><div class="sb-user"><div class="sb-avatar" style="background:linear-gradient(135deg,#5B6EF5,#9B6EF5)">👑</div>
+    <div><div class="sb-uname">{{ session.name }}</div><div class="sb-urole">Super Admin</div></div></div>
+    <a class="sb-logout" href="/logout">🚪 Logout</a></div>
+</div>
+<div class="main">
+  <div class="topbar"><div class="topbar-left"><div class="topbar-title">Manage All Videos</div><div class="topbar-sub">View, edit and delete all uploaded videos</div></div></div>
+  <div class="page-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}{% for c,m in messages %}<div class="flash {{c}}">{{m}}</div>{% endfor %}{% endif %}{% endwith %}
+    <div class="page-title">All Videos</div>
+    <div class="page-sub">Total: {{ videos|length }} videos across all courses</div>
+    <div class="card">
+      <div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Course</th><th>Lesson Title</th><th>Description</th><th>Uploader</th><th>Duration</th><th>Uploaded</th><th>Actions</th></tr></thead>
+        <tbody>
+        {% for v in videos %}
+        <tr>
+          <td>{{ v.id }}</td>
+          <td><span class="badge badge-blue">{{ v.course_title }}</span></td>
+          <td class="td-name">{{ v.title or 'Untitled' }}</td>
+          <td style="color:var(--muted);font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ v.description or '—' }}</td>
+          <td>{{ v.uploader }}</td>
+          <td>{{ v.duration or '—' }}</td>
+          <td>{{ v.uploaded_at.strftime('%d %b %Y') if v.uploaded_at else '—' }}</td>
+          <td style="display:flex;gap:6px;flex-wrap:wrap">
+            {% if v.video_url %}
+              <a href="{{ v.video_url }}" target="_blank" class="btn btn-sm btn-teal">▶ Watch</a>
+            {% endif %}
+            <a href="/admin_edit_video/{{ v.id }}" class="btn btn-sm btn-ghost">✏️ Edit</a>
+            <a href="/admin_delete_video/{{ v.id }}" class="btn btn-sm btn-red"
+               onclick="return confirm('Delete this video?')">🗑 Delete</a>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:32px">No videos uploaded yet.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+</div></div></body></html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ course.title }} — LearnJeni</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-icon">🎓</div>
+      <div><div class="sb-logo-name">LearnJeni</div><div class="sb-logo-tag">Student Panel</div></div>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-section">Learning</div>
+      <a class="sb-link" href="/student_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+      <a class="sb-link active" href="/courses"><span class="sb-icon">📚</span> My Courses</a>
+      <a class="sb-link" href="/assignment"><span class="sb-icon">📝</span> Assignments</a>
+      <div class="sb-section">Progress</div>
+      <a class="sb-link" href="/attendance"><span class="sb-icon">📋</span> Attendance</a>
+      <a class="sb-link" href="/certificate"><span class="sb-icon">🎖️</span> Certificate</a>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar" style="background:linear-gradient(135deg,#F0B429,#F0547A)">{{ session.name[0]|upper }}</div>
+        <div><div class="sb-uname">{{ session.name }}</div><div class="sb-urole">Student</div></div>
+      </div>
+      <a class="sb-logout" href="/logout">🚪 Logout</a>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">{{ course.title }}</div>
+        <div class="topbar-sub">Course Detail</div>
+      </div>
+      <div class="topbar-actions">
+        <a class="btn btn-accent btn-sm" href="/learn/{{ course.id }}">▶ Start Learning</a>
+        <a class="btn btn-ghost btn-sm" href="/courses">← All Courses</a>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for c,m in messages %}<div class="flash {{c}}">{{m}}</div>{% endfor %}{% endif %}
+      {% endwith %}
+
+      <a class="back-link" href="/courses">← Back to Courses</a>
+
+      <div style="display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start">
+
+        <!-- LEFT -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+
+          <!-- Course Banner -->
+          <div class="card" style="padding:0;overflow:hidden">
+            <div style="height:180px;background:linear-gradient(135deg,rgba(91,110,245,.25),rgba(155,110,245,.2));display:flex;align-items:center;justify-content:center;font-size:72px">📚</div>
+            <div style="padding:24px">
+              <div style="font-family:var(--font-d);font-size:26px;font-weight:700;margin-bottom:8px">{{ course.title }}</div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px">
+                {% if course.department %}<span class="badge badge-blue">{{ course.department }}</span>{% endif %}
+                <span class="badge badge-green">Available</span>
+              </div>
+              <div style="font-size:14px;color:var(--soft);line-height:1.7">
+                {{ course.description or 'No description provided for this course.' }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Video Section -->
+          {% if course.video_url %}
+          <div class="card">
+            <div class="card-head"><span class="card-title">🎥 Course Video</span></div>
+            <div style="border-radius:12px;overflow:hidden;aspect-ratio:16/9">
+              <iframe
+                src="{{ course.video_url }}"
+                frameborder="0"
+                allowfullscreen
+                style="width:100%;height:100%;border:none">
+              </iframe>
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Video Lessons -->
+          {% if videos %}
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">📹 Lessons ({{ videos|length }})</span>
+              <a class="btn btn-sm btn-accent" href="/learn/{{ course.id }}">Watch All →</a>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              {% for v in videos %}
+              <div class="lesson-row">
+                <div style="width:32px;height:32px;border-radius:8px;background:rgba(91,110,245,.15);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">▶</div>
+                <div style="flex:1">
+                  <div style="font-size:13.5px;font-weight:500">{{ v.title or 'Lesson ' ~ loop.index }}</div>
+                  <div style="font-size:11.5px;color:var(--muted)">Video Lesson {{ loop.index }}</div>
+                </div>
+                <span class="badge badge-gray">{{ v.duration or '—' }}</span>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+        </div>
+
+        <!-- RIGHT -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+
+          <!-- Actions Card -->
+          <div class="card">
+            <div style="font-size:14px;font-weight:600;margin-bottom:14px">🚀 Get Started</div>
+            <a href="/learn/{{ course.id }}" class="btn btn-accent" style="display:block;text-align:center;padding:12px;margin-bottom:10px">▶ Start Learning</a>
+            <a href="/quiz/{{ course.id }}" class="btn btn-ghost" style="display:block;text-align:center;padding:12px;margin-bottom:10px">📝 Take Quiz</a>
+            {% if course.notes_url %}
+            <a href="{{ course.notes_url }}" download class="btn btn-gold" style="display:block;text-align:center;padding:12px">📥 Download Notes</a>
+            {% endif %}
+          </div>
+
+          <!-- Course Info -->
+          <div class="card">
+            <div style="font-size:14px;font-weight:600;margin-bottom:14px">ℹ️ Course Info</div>
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:13px">
+              <div style="display:flex;justify-content:space-between">
+                <span style="color:var(--muted)">Department</span>
+                <span style="font-weight:500">{{ course.department or 'General' }}</span>
+              </div>
+              <div style="height:1px;background:var(--border)"></div>
+              <div style="display:flex;justify-content:space-between">
+                <span style="color:var(--muted)">Lessons</span>
+                <span style="font-weight:500">{{ videos|length }} videos</span>
+              </div>
+              <div style="height:1px;background:var(--border)"></div>
+              <div style="display:flex;justify-content:space-between">
+                <span style="color:var(--muted)">Certificate</span>
+                <span style="color:var(--green);font-weight:500">✅ Available</span>
+              </div>
+              <div style="height:1px;background:var(--border)"></div>
+              <div style="display:flex;justify-content:space-between">
+                <span style="color:var(--muted)">Quiz</span>
+                <span style="color:var(--accent);font-weight:500">📝 Included</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- What you'll learn -->
+          <div class="card">
+            <div style="font-size:14px;font-weight:600;margin-bottom:12px">📖 What You'll Learn</div>
+            <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--soft)">
+              <div style="display:flex;gap:8px"><span style="color:var(--green)">✓</span><span>Core concepts and fundamentals</span></div>
+              <div style="display:flex;gap:8px"><span style="color:var(--green)">✓</span><span>Hands-on practical exercises</span></div>
+              <div style="display:flex;gap:8px"><span style="color:var(--green)">✓</span><span>Real-world project experience</span></div>
+              <div style="display:flex;gap:8px"><span style="color:var(--green)">✓</span><span>Quiz-based assessment</span></div>
+              <div style="display:flex;gap:8px"><span style="color:var(--green)">✓</span><span>Certificate of completion</span></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.lesson-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--surface2);
+  border: 1px solid transparent;
+  transition: all .15s;
+  cursor: pointer;
+}
+.lesson-row:hover { border-color: var(--border); }
+</style>
+</body>
+</html>

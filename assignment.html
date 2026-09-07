@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assignments — LearnJeni</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-icon">🎓</div>
+      <div><div class="sb-logo-name">LearnJeni</div><div class="sb-logo-tag">Student Panel</div></div>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-section">Learning</div>
+      <a class="sb-link" href="/student_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+      <a class="sb-link" href="/courses"><span class="sb-icon">📚</span> My Courses</a>
+      <a class="sb-link active" href="/assignment"><span class="sb-icon">📝</span> Assignments</a>
+      <div class="sb-section">Progress</div>
+      <a class="sb-link" href="/attendance"><span class="sb-icon">📋</span> Attendance</a>
+      <a class="sb-link" href="/certificate"><span class="sb-icon">🎖️</span> Certificate</a>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar" style="background:linear-gradient(135deg,#F0B429,#F0547A)">{{ session.name[0]|upper }}</div>
+        <div><div class="sb-uname">{{ session.name }}</div><div class="sb-urole">Student</div></div>
+      </div>
+      <a class="sb-logout" href="/logout">🚪 Logout</a>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">Assignments</div>
+        <div class="topbar-sub">Submit and track your course work</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for c,m in messages %}<div class="flash {{c}}">{{m}}</div>{% endfor %}{% endif %}
+      {% endwith %}
+
+      <div class="page-title">My Assignments</div>
+      <div class="page-sub">Complete and submit your pending work on time</div>
+
+      <!-- Assignment List -->
+      {% if assignments %}
+      <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:28px">
+        {% for a in assignments %}
+        <div class="asgn-card" onclick="openSubmit({{ a.id }}, '{{ a.title|replace("'","") }}', '{{ a.description|replace("'","") or '' }}')" id="acard-{{ a.id }}">
+          <div style="width:46px;height:46px;border-radius:12px;background:rgba(91,110,245,.15);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">📄</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:500;margin-bottom:4px">{{ a.title }}</div>
+            <div style="display:flex;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap">
+              <span>📚 {{ a.course_title }}</span>
+              {% if a.due_date %}
+              <span class="{% if a.due_date < today %}due-past{% else %}due-ok{% endif %}">
+                ⏰ Due: {{ a.due_date.strftime('%d %b %Y') }}
+              </span>
+              {% endif %}
+            </div>
+          </div>
+          <span class="badge badge-gold">Pending</span>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% else %}
+      <div class="empty-state" style="margin-bottom:28px">
+        <div class="icon">📝</div>
+        <div style="font-size:15px;font-weight:500">No assignments yet</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:4px">Your instructors haven't assigned any tasks yet.</div>
+      </div>
+      {% endif %}
+
+      <!-- ── SUBMIT FORM ── -->
+      <div class="card" id="submit-form-card">
+        <div class="card-head">
+          <span class="card-title">📤 Submit Assignment</span>
+          <span id="selected-title" class="badge badge-blue">No assignment selected</span>
+        </div>
+
+        <div id="task-desc" style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:13.5px;color:var(--soft);margin-bottom:18px;line-height:1.6">
+          Select an assignment above to view the task details and submit your work.
+        </div>
+
+        <form method="POST" action="/assignment" enctype="multipart/form-data" id="submit-form">
+          <input type="hidden" name="assignment_id" id="asgn-id" value="">
+
+          <div class="form-group">
+            <label class="form-label">📝 Your Answer / Explanation</label>
+            <textarea class="form-textarea" name="answer_text" rows="6"
+                      placeholder="Write your detailed answer or explanation here..."
+                      style="min-height:140px"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">📎 Attach File (Optional)</label>
+            <div class="upload-zone" onclick="document.getElementById('asgn-file').click()" style="padding:24px">
+              <div class="upload-icon" style="font-size:32px;margin-bottom:8px">📎</div>
+              <div class="upload-title" style="font-size:14px">Click to attach file</div>
+              <div class="upload-sub" id="file-name">PDF, DOC, ZIP, Images supported</div>
+              <input id="asgn-file" type="file" name="file" style="display:none"
+                     onchange="document.getElementById('file-name').textContent = this.files[0]?.name || 'No file chosen'">
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:8px">
+            <button type="submit" class="btn btn-accent" style="width:auto;padding:11px 28px">
+              📤 Submit Assignment
+            </button>
+            <button type="button" class="btn btn-ghost" style="padding:11px 20px"
+                    onclick="document.getElementById('submit-form').reset();document.getElementById('file-name').textContent='PDF, DOC, ZIP, Images supported'">
+              🗑 Clear
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+.asgn-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  cursor: pointer;
+  transition: all .15s;
+}
+.asgn-card:hover { border-color: var(--accent); background: rgba(91,110,245,.04); }
+.asgn-card.selected { border-color: var(--accent); background: rgba(91,110,245,.06); }
+.due-ok   { color: var(--green); }
+.due-past { color: var(--rose); }
+</style>
+
+<script>
+function openSubmit(id, title, desc) {
+  // Highlight selected card
+  document.querySelectorAll('.asgn-card').forEach(c => c.classList.remove('selected'));
+  const card = document.getElementById('acard-' + id);
+  if (card) card.classList.add('selected');
+
+  // Fill form
+  document.getElementById('asgn-id').value = id;
+  document.getElementById('selected-title').textContent = title;
+  document.getElementById('task-desc').textContent = desc || 'Complete the given task and submit your work.';
+
+  // Scroll to form
+  document.getElementById('submit-form-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Manage Quiz — LearnJeni</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body>
+<div class="app-layout">
+  <div class="sidebar">
+    <div class="sb-logo"><div class="sb-logo-icon">👩‍🏫</div><div><div class="sb-logo-name">LearnJeni</div><div class="sb-logo-tag">Staff Panel</div></div></div>
+    <div class="sb-nav">
+      <div class="sb-section">Main</div>
+      <a class="sb-link" href="/staff_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+      <a class="sb-link" href="/add_course"><span class="sb-icon">➕</span> Add Course</a>
+      <a class="sb-link" href="/view_students"><span class="sb-icon">👥</span> View Students</a>
+      <a class="sb-link" href="/mark_attendance"><span class="sb-icon">📋</span> Mark Attendance</a>
+      <a class="sb-link active" href="/manage_quiz"><span class="sb-icon">📝</span> Manage Quiz</a>
+      <a class="sb-link" href="/upload_video"><span class="sb-icon">🎥</span> Upload Video</a>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user"><div class="sb-avatar" style="background:linear-gradient(135deg,#2ECEC4,#5B6EF5)">👩‍🏫</div><div><div class="sb-uname">{{ session.name }}</div><div class="sb-urole">Staff Member</div></div></div>
+      <a class="sb-logout" href="/logout">🚪 Logout</a>
+    </div>
+  </div>
+  <div class="main">
+    <div class="topbar"><div class="topbar-left"><div class="topbar-title">Manage Quiz</div><div class="topbar-sub">Add, edit and remove quiz questions</div></div></div>
+    <div class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}{% for c,m in messages %}<div class="flash {{c}}">{{m}}</div>{% endfor %}{% endif %}{% endwith %}
+
+      <!-- Select course -->
+      <div class="card" style="margin-bottom:16px">
+        <div class="card-head"><span class="card-title">Select Course</span></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          {% for c in my_courses %}
+          <a href="/manage_quiz?course_id={{ c.id }}"
+             class="btn btn-sm {% if course_id|int == c.id %}btn-accent{% else %}btn-ghost{% endif %}">
+            {{ c.title }}
+          </a>
+          {% else %}
+          <span style="color:var(--muted);font-size:13px">No courses yet. <a href="/add_course" style="color:var(--accent)">Add a course first →</a></span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Add question form -->
+        <div class="card">
+          <div class="card-head"><span class="card-title">➕ Add Question</span></div>
+          <form method="POST" action="/manage_quiz">
+            <input type="hidden" name="course_id" value="{{ course_id }}">
+            <div class="form-group">
+              <label class="form-label">Question *</label>
+              <textarea class="form-textarea" name="question" rows="3" placeholder="Enter question..." required style="min-height:80px"></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-group"><label class="form-label">Option 1</label><input class="form-input" name="option1" placeholder="Option A" required></div>
+              <div class="form-group"><label class="form-label">Option 2</label><input class="form-input" name="option2" placeholder="Option B" required></div>
+              <div class="form-group"><label class="form-label">Option 3</label><input class="form-input" name="option3" placeholder="Option C" required></div>
+              <div class="form-group"><label class="form-label">Option 4</label><input class="form-input" name="option4" placeholder="Option D" required></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Correct Answer *</label>
+              <select class="form-select" name="correct" required>
+                <option value="">Select correct option</option>
+                <option value="1">Option 1</option>
+                <option value="2">Option 2</option>
+                <option value="3">Option 3</option>
+                <option value="4">Option 4</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-accent" style="width:auto;padding:10px 24px">Add Question</button>
+          </form>
+        </div>
+
+        <!-- Existing questions -->
+        <div class="card">
+          <div class="card-head"><span class="card-title">Existing Questions</span><span class="badge badge-blue">{{ questions|length }}</span></div>
+          {% if questions %}
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Question</th><th>Action</th></tr></thead>
+              <tbody>
+                {% for q in questions %}
+                <tr>
+                  <td>{{ q.id }}</td>
+                  <td style="font-size:13px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ q.question }}</td>
+                  <td><a href="/delete_question/{{ q.id }}?course_id={{ course_id }}" class="btn btn-sm btn-red" onclick="return confirm('Delete question?')">Delete</a></td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="empty-state"><div class="icon">📝</div><div>No questions yet.</div></div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Edit Course — LearnJeni</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body>
+<div class="app-layout">
+  <div class="sidebar">
+    <div class="sb-logo"><div class="sb-logo-icon">🎓</div><div><div class="sb-logo-name">LearnJeni</div><div class="sb-logo-tag">Admin Panel</div></div></div>
+    <div class="sb-nav">
+      <div class="sb-section">Main</div>
+      <a class="sb-link" href="/admin_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+      <a class="sb-link" href="/manage_students"><span class="sb-icon">👨‍🎓</span> Students</a>
+      <a class="sb-link" href="/manage_staff"><span class="sb-icon">👩‍🏫</span> Staff</a>
+      <a class="sb-link active" href="/manage_courses"><span class="sb-icon">📚</span> Courses</a>
+      <div class="sb-section">Reports</div>
+      <a class="sb-link" href="/analytics"><span class="sb-icon">📊</span> Analytics</a>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user"><div class="sb-avatar" style="background:linear-gradient(135deg,#5B6EF5,#9B6EF5)">👑</div><div><div class="sb-uname">{{ session.name }}</div><div class="sb-urole">Admin</div></div></div>
+      <a class="sb-logout" href="/logout">🚪 Logout</a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">Edit Course</div>
+        <div class="topbar-sub">Update course information</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for c,m in messages %}
+            <div class="flash {{c}}">{{m}}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <div class="card" style="max-width:680px">
+        <div class="card-head">
+          <span class="card-title">✏️ Edit Course: {{ course.title }}</span>
+        </div>
+
+        <form method="POST" action="/edit_course/{{ course.id }}">
+          <div class="form-group">
+            <label class="form-label">Course Title *</label>
+            <input class="form-input" type="text" name="title" value="{{ course.title }}" placeholder="e.g. Python Programming" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-input" name="description" placeholder="Course description..." rows="4">{{ course.description or '' }}</textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Department</label>
+            <input class="form-input" type="text" name="department" value="{{ course.department or '' }}" placeholder="e.g. Computer Science">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Course ID</label>
+            <input class="form-input" type="text" value="{{ course.id }}" disabled placeholder="Auto-generated">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Created</label>
+            <input class="form-input" type="text" value="{{ course.created_at.strftime('%d %b %Y %H:%M') if course.created_at else 'N/A' }}" disabled>
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:20px">
+            <button type="submit" class="btn btn-accent" style="width:auto;padding:10px 28px">💾 Save Changes</button>
+            <a href="/manage_courses" class="btn btn-ghost" style="padding:10px 20px">← Back to Courses</a>
+          </div>
+        </form>
+      </div>
+
+      <!-- Course Info Card -->
+      <div class="card" style="max-width:680px;margin-top:20px">
+        <div class="card-head">
+          <span class="card-title">📊 Course Statistics</span>
+        </div>
+        
+        <div style="padding:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+          <div style="text-align:center;padding:12px;background:#f5f5f5;border-radius:8px">
+            <div style="font-size:24px;font-weight:bold;color:var(--blue)">0</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px">Videos</div>
+          </div>
+          
+          <div style="text-align:center;padding:12px;background:#f5f5f5;border-radius:8px">
+            <div style="font-size:24px;font-weight:bold;color:var(--green)">0</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px">Enrollments</div>
+          </div>
+          
+          <div style="text-align:center;padding:12px;background:#f5f5f5;border-radius:8px">
+            <div style="font-size:24px;font-weight:bold;color:var(--amber)">0</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px">Quizzes</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

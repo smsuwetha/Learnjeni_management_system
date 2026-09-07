@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Mark Attendance — LearnJeni</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body>
+<div class="app-layout">
+  <div class="sidebar">
+    <div class="sb-logo"><div class="sb-logo-icon">👩‍🏫</div><div><div class="sb-logo-name">LearnJeni</div><div class="sb-logo-tag">Staff Panel</div></div></div>
+    <div class="sb-nav">
+      <div class="sb-section">Main</div>
+      <a class="sb-link" href="/staff_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+      <a class="sb-link" href="/add_course"><span class="sb-icon">➕</span> Add Course</a>
+      <a class="sb-link" href="/view_students"><span class="sb-icon">👥</span> View Students</a>
+      <a class="sb-link active" href="/mark_attendance"><span class="sb-icon">📋</span> Mark Attendance</a>
+      <a class="sb-link" href="/manage_quiz"><span class="sb-icon">📝</span> Manage Quiz</a>
+      <a class="sb-link" href="/upload_video"><span class="sb-icon">🎥</span> Upload Video</a>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user"><div class="sb-avatar" style="background:linear-gradient(135deg,#2ECEC4,#5B6EF5)">👩‍🏫</div><div><div class="sb-uname">{{ session.name }}</div><div class="sb-urole">Staff Member</div></div></div>
+      <a class="sb-logout" href="/logout">🚪 Logout</a>
+    </div>
+  </div>
+  <div class="main">
+    <div class="topbar"><div class="topbar-left"><div class="topbar-title">Mark Attendance</div><div class="topbar-sub">Record student attendance</div></div></div>
+    <div class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}{% for c,m in messages %}<div class="flash {{c}}">{{m}}</div>{% endfor %}{% endif %}{% endwith %}
+
+      <form method="POST" action="/mark_attendance">
+        <div class="card" style="margin-bottom:16px;max-width:640px">
+          <div class="card-head"><span class="card-title">Session Details</span></div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Select Course</label>
+              <select class="form-select" name="course" required>
+                <option value="">Choose course...</option>
+                {% for c in courses %}
+                <option value="{{ c.id }}">{{ c.title }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date</label>
+              <input class="form-input" type="date" name="att_date"
+                     value="{{ today }}" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><span class="card-title">Students</span><button type="submit" class="btn btn-accent btn-sm">💾 Save Attendance</button></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ID</th><th>Name</th><th>Roll No</th><th>✅ Present</th><th>❌ Absent</th></tr></thead>
+              <tbody>
+                {% for s in students %}
+                <tr>
+                  <td>{{ s.id }}</td>
+                  <td class="td-name">{{ s.name }}</td>
+                  <td>—</td>
+                  <td><input type="radio" name="att_{{ s.id }}" value="present" checked style="accent-color:var(--green);width:16px;height:16px"></td>
+                  <td><input type="radio" name="att_{{ s.id }}" value="absent" style="accent-color:var(--rose);width:16px;height:16px"></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px">No students found.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+</body>
+</html>

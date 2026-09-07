@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Manage Courses — LearnJeni</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body>
+<div class="app-layout">
+  <div class="sidebar">
+    <div class="sb-logo"><div class="sb-logo-icon">🎓</div><div><div class="sb-logo-name">LearnJeni</div><div class="sb-logo-tag">Admin Panel</div></div></div>
+    <div class="sb-nav">
+      <div class="sb-section">Main</div>
+      <a class="sb-link" href="/admin_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+      <a class="sb-link" href="/manage_students"><span class="sb-icon">👨‍🎓</span> Students</a>
+      <a class="sb-link" href="/manage_staff"><span class="sb-icon">👩‍🏫</span> Staff</a>
+      <a class="sb-link active" href="/manage_courses"><span class="sb-icon">📚</span> Courses</a>
+      <div class="sb-section">Reports</div>
+      <a class="sb-link" href="/admin_videos"><span class="sb-icon">🎥</span> Manage Videos</a>\n    <a class="sb-link" href="/analytics"><span class="sb-icon">📊</span> Analytics</a>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user"><div class="sb-avatar" style="background:linear-gradient(135deg,#5B6EF5,#9B6EF5)">👑</div><div><div class="sb-uname">{{ session.name }}</div><div class="sb-urole">Admin</div></div></div>
+      <a class="sb-logout" href="/logout">🚪 Logout</a>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">Manage Courses</div>
+        <div class="topbar-sub">Create and manage all LMS courses</div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-accent btn-sm" onclick="toggleAddForm()">+ Add Course</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for c,m in messages %}
+            <div class="flash {{c}}">{{m}}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <!-- Add Course Form (Hidden by default) -->
+      <div id="addCourseForm" class="card" style="display:none;margin-bottom:20px;background:#f9f9f9">
+        <div class="card-head">
+          <span class="card-title">➕ Create New Course</span>
+          <button type="button" class="btn btn-sm btn-ghost" onclick="toggleAddForm()">✕ Close</button>
+        </div>
+        
+        <form method="POST" action="/manage_courses">
+          <div class="form-group">
+            <label class="form-label">Course Title *</label>
+            <input class="form-input" type="text" name="title" placeholder="e.g. Python Programming" required>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea class="form-input" name="description" placeholder="Course description..." rows="3"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Department</label>
+            <input class="form-input" type="text" name="department" placeholder="e.g. Computer Science">
+          </div>
+          
+          <div style="display:flex;gap:10px">
+            <button type="submit" class="btn btn-accent" style="width:auto;padding:10px 28px">Create Course</button>
+            <button type="button" class="btn btn-ghost" style="padding:10px 20px" onclick="toggleAddForm()">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Courses Table -->
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">All Courses ({{ courses|length }})</span>
+        </div>
+        
+        {% if courses %}
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Department</th>
+                <th>Instructor</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for c in courses %}
+              <tr>
+                <td>{{ c.id }}</td>
+                <td class="td-name">{{ c.title }}</td>
+                <td>{{ c.department or '—' }}</td>
+                <td>{{ c.created_by_name or 'System' }}</td>
+                <td>{{ c.created_at.strftime('%d %b %Y') if c.created_at else '—' }}</td>
+                <td>
+                  <a href="/edit_course/{{ c.id }}" class="btn btn-sm btn-blue" title="Edit course">✏️ Edit</a>
+                  <a href="/delete_course/{{ c.id }}" class="btn btn-sm btn-red" onclick="return confirm('Delete this course?')" title="Delete course">🗑️ Delete</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+          <div class="icon">📚</div>
+          <div>No courses yet. <button type="button" onclick="toggleAddForm()" style="background:none;border:none;color:var(--accent);cursor:pointer;text-decoration:underline">Create your first course →</button></div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleAddForm() {
+  const form = document.getElementById('addCourseForm');
+  if (form.style.display === 'none') {
+    form.style.display = 'block';
+    document.querySelector('input[name="title"]').focus();
+  } else {
+    form.style.display = 'none';
+  }
+}
+</script>
+</body>
+</html>

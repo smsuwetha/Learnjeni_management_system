@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Staff Dashboard — LearnJeni</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body>
+<div class="app-layout">
+  <div class="sidebar">
+    <div class="sb-logo"><div class="sb-logo-icon">👩‍🏫</div><div><div class="sb-logo-name">LearnJeni</div><div class="sb-logo-tag">Staff Panel</div></div></div>
+    <div class="sb-nav">
+      <div class="sb-section">Main</div>
+      <a class="sb-link active" href="/staff_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+      <a class="sb-link" href="/add_course"><span class="sb-icon">➕</span> Add Course</a>
+      <a class="sb-link" href="/view_students"><span class="sb-icon">👥</span> View Students</a>
+      <a class="sb-link" href="/mark_attendance"><span class="sb-icon">📋</span> Mark Attendance</a>
+      <a class="sb-link" href="/manage_quiz"><span class="sb-icon">📝</span> Manage Quiz</a>
+      <a class="sb-link" href="/upload_video"><span class="sb-icon">🎥</span> Upload Video</a>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user"><div class="sb-avatar" style="background:linear-gradient(135deg,#2ECEC4,#5B6EF5)">👩‍🏫</div><div><div class="sb-uname">{{ session.name }}</div><div class="sb-urole">Staff Member</div></div></div>
+      <a class="sb-logout" href="/logout">🚪 Logout</a>
+    </div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left"><div class="topbar-title">Staff Dashboard</div><div class="topbar-sub">Welcome, {{ session.name }} 👋</div></div>
+      <div class="topbar-actions"><a class="btn btn-accent btn-sm" href="/add_course">+ Add Course</a></div>
+    </div>
+    <div class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}{% for c,m in messages %}<div class="flash {{c}}">{{m}}</div>{% endfor %}{% endif %}{% endwith %}
+
+      <div class="page-title">Staff Overview</div>
+      <div class="page-sub">Manage your courses, students and content</div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="stat-card blue"><div class="stat-icon">📚</div><div class="stat-label">My Courses</div><div class="stat-value">{{ my_courses }}</div><div class="stat-trend trend-neu">→ Active</div></div>
+        <div class="stat-card teal"><div class="stat-icon">👨‍🎓</div><div class="stat-label">Total Students</div><div class="stat-value">{{ total_students }}</div><div class="stat-trend trend-up">↑ Enrolled</div></div>
+        <div class="stat-card gold"><div class="stat-icon">🎥</div><div class="stat-label">Videos Uploaded</div><div class="stat-value">{{ my_videos }}</div><div class="stat-trend trend-up">↑ Content</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="card-title">📚 My Courses</span><a class="btn btn-sm btn-accent" href="/add_course">+ Add</a></div>
+        {% if courses %}
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Course Title</th><th>Enrolled</th><th>Actions</th></tr></thead>
+            <tbody>
+              {% for c in courses %}
+              <tr>
+                <td>{{ c.id }}</td>
+                <td class="td-name">{{ c.title }}</td>
+                <td><span class="badge badge-green">{{ c.enrolled }} students</span></td>
+                <td>
+                  <a href="/course/{{ c.id }}" class="btn btn-sm btn-teal">View</a>
+                  <a href="/manage_quiz?course_id={{ c.id }}" class="btn btn-sm btn-ghost">Quiz</a>
+                  <a href="/upload_video" class="btn btn-sm btn-ghost">Videos</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="empty-state"><div class="icon">📚</div><div>No courses yet. <a href="/add_course" style="color:var(--accent)">Add your first course →</a></div></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

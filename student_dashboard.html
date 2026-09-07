@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard — LearnJeni</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- ── SIDEBAR ── -->
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-icon">🎓</div>
+      <div>
+        <div class="sb-logo-name">LearnJeni</div>
+        <div class="sb-logo-tag">Student Panel</div>
+      </div>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-section">Learning</div>
+      <a class="sb-link active" href="/student_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+      <a class="sb-link" href="/courses"><span class="sb-icon">📚</span> My Courses</a>
+      <a class="sb-link" href="/assignment"><span class="sb-icon">📝</span> Assignments</a>
+
+      <div class="sb-section">Progress</div>
+      <a class="sb-link" href="/attendance"><span class="sb-icon">📋</span> Attendance</a>
+      <a class="sb-link" href="/certificate"><span class="sb-icon">🎖️</span> Certificate</a>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar" style="background:linear-gradient(135deg,#F0B429,#F0547A)">
+          {{ session.name[0] | upper }}
+        </div>
+        <div>
+          <div class="sb-uname">{{ session.name }}</div>
+          <div class="sb-urole">Student</div>
+        </div>
+      </div>
+      <a class="sb-logout" href="/logout">🚪 Logout</a>
+    </div>
+  </div>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">My Dashboard</div>
+        <div class="topbar-sub">Welcome back, {{ session.name }} 👋</div>
+      </div>
+      <div class="topbar-actions">
+        <a class="btn btn-accent btn-sm" href="/mark_my_attendance">✅ Mark Attendance</a>
+        <a class="btn btn-ghost btn-sm" href="/courses">Browse Courses</a>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <div class="page-title">Learning Overview</div>
+      <div class="page-sub">Track your courses, attendance and achievements</div>
+
+      <!-- ── STAT CARDS ── -->
+      <div class="stats-grid">
+        <div class="stat-card blue" onclick="location.href='/courses'" style="cursor:pointer">
+          <div class="stat-icon">📚</div>
+          <div class="stat-label">Enrolled Courses</div>
+          <div class="stat-value">{{ enrolled }}</div>
+          <div class="stat-trend trend-up">↑ Active</div>
+        </div>
+
+        <div class="stat-card green" onclick="location.href='/attendance'" style="cursor:pointer">
+          <div class="stat-icon">📋</div>
+          <div class="stat-label">Attendance</div>
+          <div class="stat-value">{{ att_pct }}%</div>
+          <div class="stat-trend {% if att_pct >= 75 %}trend-up{% else %}trend-dn{% endif %}">
+            {% if att_pct >= 75 %}✅ Good Standing{% else %}⚠️ Below 75%{% endif %}
+          </div>
+        </div>
+
+        <div class="stat-card gold">
+          <div class="stat-icon">🏆</div>
+          <div class="stat-label">Last Quiz Score</div>
+          <div class="stat-value">
+            {% if last_quiz %}{{ last_quiz.score }}/{{ last_quiz.total }}{% else %}N/A{% endif %}
+          </div>
+          <div class="stat-trend trend-neu">→ Latest attempt</div>
+        </div>
+
+        <div class="stat-card purple" onclick="location.href='/certificate'" style="cursor:pointer">
+          <div class="stat-icon">🎖️</div>
+          <div class="stat-label">Certificates</div>
+          <div class="stat-value">{{ certs }}</div>
+          <div class="stat-trend trend-up">↑ Earned</div>
+        </div>
+      </div>
+
+      <!-- ── MAIN GRID ── -->
+      <div class="grid-dash">
+
+        <!-- LEFT COLUMN -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+
+          <!-- Quick Actions -->
+          <div class="card">
+            <div class="card-head"><span class="card-title">🚀 Quick Actions</span></div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+              <a href="/courses" class="quick-action-card">
+                <div style="font-size:28px;margin-bottom:8px">📚</div>
+                <div style="font-size:13px;font-weight:600">My Courses</div>
+                <div style="font-size:11px;color:var(--muted)">View all enrolled</div>
+              </a>
+              <a href="/assignment" class="quick-action-card">
+                <div style="font-size:28px;margin-bottom:8px">📝</div>
+                <div style="font-size:13px;font-weight:600">Assignments</div>
+                <div style="font-size:11px;color:var(--muted)">Submit work</div>
+              </a>
+              <a href="/attendance" class="quick-action-card">
+                <div style="font-size:28px;margin-bottom:8px">📋</div>
+                <div style="font-size:13px;font-weight:600">Attendance</div>
+                <div style="font-size:11px;color:var(--muted)">{{ att_pct }}% present</div>
+              </a>
+              <a href="/certificate" class="quick-action-card">
+                <div style="font-size:28px;margin-bottom:8px">🎖️</div>
+                <div style="font-size:13px;font-weight:600">Certificates</div>
+                <div style="font-size:11px;color:var(--muted)">{{ certs }} earned</div>
+              </a>
+            </div>
+          </div>
+
+          <!-- Attendance Progress -->
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">📊 Attendance Overview</span>
+              <a class="btn btn-sm btn-ghost" href="/attendance">Details →</a>
+            </div>
+            <div style="display:flex;align-items:center;gap:24px">
+              <div style="position:relative;width:110px;height:110px;flex-shrink:0">
+                <canvas id="attDonut"></canvas>
+                <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column">
+                  <div style="font-family:var(--font-d);font-size:22px;font-weight:700;color:{% if att_pct >= 75 %}var(--green){% else %}var(--rose){% endif %}">{{ att_pct }}%</div>
+                  <div style="font-size:10px;color:var(--muted)">Present</div>
+                </div>
+              </div>
+              <div style="flex:1">
+                <div style="margin-bottom:12px">
+                  <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:4px">
+                    <span>Overall Attendance</span><span>{{ att_pct }}%</span>
+                  </div>
+                  <div class="prog-bar">
+                    <div class="prog-fill {% if att_pct >= 75 %}prog-green{% else %}prog-rose{% endif %}" style="width:{{ att_pct }}%"></div>
+                  </div>
+                </div>
+                <div style="font-size:12px;color:var(--muted)">
+                  Minimum required: <strong style="color:var(--text)">75%</strong><br>
+                  Status:
+                  {% if att_pct >= 75 %}
+                    <strong style="color:var(--green)">✅ Good Standing</strong>
+                  {% else %}
+                    <strong style="color:var(--rose)">⚠️ At Risk — Improve attendance!</strong>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Last Quiz Result -->
+          {% if last_quiz %}
+          <div class="card">
+            <div class="card-head">
+              <span class="card-title">🏆 Latest Quiz Result</span>
+              <a class="btn btn-sm btn-ghost" href="/courses">Take Quiz →</a>
+            </div>
+            <div style="display:flex;align-items:center;gap:20px">
+              <div style="text-align:center;padding:16px 24px;background:var(--surface2);border-radius:12px;border:1px solid var(--border)">
+                <div style="font-family:var(--font-d);font-size:36px;font-weight:700;color:var(--gold)">
+                  {{ last_quiz.score }}/{{ last_quiz.total }}
+                </div>
+                <div style="font-size:12px;color:var(--muted);margin-top:4px">Score</div>
+              </div>
+              <div>
+                {% set pct = ((last_quiz.score / last_quiz.total) * 100) | int %}
+                <div style="font-size:15px;font-weight:600;margin-bottom:6px">
+                  {% if pct >= 80 %}🥇 Excellent!
+                  {% elif pct >= 60 %}🥈 Good Job!
+                  {% else %}📖 Keep Practising{% endif %}
+                </div>
+                <div style="font-size:13px;color:var(--muted);margin-bottom:10px">
+                  You scored {{ pct }}% on your last attempt
+                </div>
+                <div style="font-size:20px;letter-spacing:3px">
+                  {% for i in range(5) %}{% if i < (pct // 20) %}⭐{% else %}☆{% endif %}{% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+
+          <!-- Profile Card -->
+          <div class="card">
+            <div class="card-head"><span class="card-title">👤 My Profile</span></div>
+            <div style="text-align:center;padding:10px 0 16px">
+              <div style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#F0B429,#F0547A);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;margin:0 auto 12px">
+                {{ session.name[0] | upper }}
+              </div>
+              <div style="font-size:16px;font-weight:600;margin-bottom:4px">{{ session.name }}</div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:12px">{{ session.email }}</div>
+              <span class="badge badge-green" style="font-size:12px;padding:5px 14px">🎓 Student</span>
+            </div>
+            <div class="divider"></div>
+            <div style="display:flex;justify-content:space-around;text-align:center;padding:8px 0">
+              <div><div style="font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--accent)">{{ enrolled }}</div><div style="font-size:11px;color:var(--muted)">Courses</div></div>
+              <div><div style="font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--green)">{{ att_pct }}%</div><div style="font-size:11px;color:var(--muted)">Attendance</div></div>
+              <div><div style="font-family:var(--font-d);font-size:22px;font-weight:700;color:var(--gold)">{{ certs }}</div><div style="font-size:11px;color:var(--muted)">Certs</div></div>
+            </div>
+          </div>
+
+          <!-- Achievements -->
+          <div class="card">
+            <div class="card-head"><span class="card-title">🏅 Achievements</span></div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px">
+              {% if enrolled >= 1 %}
+              <div class="achievement-badge" style="background:rgba(91,110,245,.12);border-color:rgba(91,110,245,.3)">
+                <div style="font-size:22px">📚</div>
+                <div style="font-size:11px;font-weight:600;color:var(--accent)">Enrolled</div>
+                <div style="font-size:10px;color:var(--muted)">First Course</div>
+              </div>
+              {% endif %}
+              {% if att_pct >= 75 %}
+              <div class="achievement-badge" style="background:rgba(61,202,122,.12);border-color:rgba(61,202,122,.3)">
+                <div style="font-size:22px">✅</div>
+                <div style="font-size:11px;font-weight:600;color:var(--green)">Punctual</div>
+                <div style="font-size:10px;color:var(--muted)">75%+ Attendance</div>
+              </div>
+              {% endif %}
+              {% if last_quiz and last_quiz.score >= (last_quiz.total * 0.8) %}
+              <div class="achievement-badge" style="background:rgba(240,180,41,.12);border-color:rgba(240,180,41,.3)">
+                <div style="font-size:22px">🥇</div>
+                <div style="font-size:11px;font-weight:600;color:var(--gold)">Top Scorer</div>
+                <div style="font-size:10px;color:var(--muted)">Quiz 80%+</div>
+              </div>
+              {% endif %}
+              {% if certs >= 1 %}
+              <div class="achievement-badge" style="background:rgba(155,110,245,.12);border-color:rgba(155,110,245,.3)">
+                <div style="font-size:22px">🎖️</div>
+                <div style="font-size:11px;font-weight:600;color:var(--purple)">Certified</div>
+                <div style="font-size:10px;color:var(--muted)">Course Complete</div>
+              </div>
+              {% endif %}
+              {% if enrolled == 0 and att_pct == 0 and certs == 0 %}
+              <div style="color:var(--muted);font-size:13px;padding:8px">Complete courses to earn badges! 🚀</div>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Tips -->
+          <div class="card" style="background:linear-gradient(135deg,rgba(91,110,245,.08),rgba(155,110,245,.06));border-color:rgba(91,110,245,.2)">
+            <div class="card-title" style="margin-bottom:12px">💡 Study Tips</div>
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;color:var(--soft)">
+              <div style="display:flex;gap:8px"><span>🎯</span><span>Attend all classes to maintain 75%+ attendance</span></div>
+              <div style="display:flex;gap:8px"><span>📖</span><span>Complete assignments before the due date</span></div>
+              <div style="display:flex;gap:8px"><span>🏆</span><span>Score 60%+ in quiz to earn a certificate</span></div>
+              <div style="display:flex;gap:8px"><span>🔥</span><span>Keep a daily learning streak going!</span></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.quick-action-card {
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:16px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:12px;text-align:center;cursor:pointer;
+  transition:all .2s;text-decoration:none;color:var(--text);
+}
+.quick-action-card:hover { border-color:var(--accent);background:rgba(91,110,245,.07);transform:translateY(-2px); }
+.achievement-badge {
+  display:flex;flex-direction:column;align-items:center;
+  padding:10px;border-radius:10px;border:1px solid;
+  width:calc(50% - 4px);text-align:center;
+}
+.divider { height:1px;background:var(--border);margin:12px 0; }
+</style>
+
+<script>
+// Attendance Donut
+new Chart(document.getElementById('attDonut'), {
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [{{ att_pct }}, {{ 100 - att_pct }}],
+      backgroundColor: [
+        '{{ "#3DCA7A" if att_pct >= 75 else "#F0547A" }}',
+        'rgba(37,45,66,0.8)'
+      ],
+      borderWidth: 0,
+      hoverOffset: 0
+    }]
+  },
+  options: {
+    responsive: true,
+    cutout: '75%',
+    plugins: { legend: { display: false }, tooltip: { enabled: false } }
+  }
+});
+</script>
+</body>
+</html>

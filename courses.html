@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My Courses — LearnJeni</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-icon">🎓</div>
+      <div><div class="sb-logo-name">LearnJeni</div><div class="sb-logo-tag">Student Panel</div></div>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-section">Learning</div>
+      <a class="sb-link" href="/student_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+      <a class="sb-link active" href="/courses"><span class="sb-icon">📚</span> My Courses</a>
+      <a class="sb-link" href="/assignment"><span class="sb-icon">📝</span> Assignments</a>
+      <div class="sb-section">Progress</div>
+      <a class="sb-link" href="/attendance"><span class="sb-icon">📋</span> Attendance</a>
+      <a class="sb-link" href="/certificate"><span class="sb-icon">🎖️</span> Certificate</a>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar" style="background:linear-gradient(135deg,#F0B429,#F0547A)">{{ session.name[0]|upper }}</div>
+        <div><div class="sb-uname">{{ session.name }}</div><div class="sb-urole">Student</div></div>
+      </div>
+      <a class="sb-logout" href="/logout">🚪 Logout</a>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">My Courses</div>
+        <div class="topbar-sub">Explore and start learning today</div>
+      </div>
+    </div>
+
+    <div class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}{% for c,m in messages %}<div class="flash {{c}}">{{m}}</div>{% endfor %}{% endif %}
+      {% endwith %}
+
+      <div class="page-title">Available Courses</div>
+      <div class="page-sub">Click on any course to view details and start learning</div>
+
+      {% if data %}
+      <div class="courses-grid">
+        {% set icons = ['🐍','🌐','📊','🤖','⚡','🔬','🎨','💻','📱','🧮'] %}
+        {% set colors = [
+          'linear-gradient(135deg,rgba(91,110,245,.2),rgba(155,110,245,.2))',
+          'linear-gradient(135deg,rgba(46,206,196,.2),rgba(91,110,245,.2))',
+          'linear-gradient(135deg,rgba(240,180,41,.2),rgba(240,128,64,.2))',
+          'linear-gradient(135deg,rgba(61,202,122,.2),rgba(46,206,196,.2))',
+          'linear-gradient(135deg,rgba(240,84,122,.2),rgba(155,110,245,.2))'
+        ] %}
+        {% for c in data %}
+        <div class="course-card-big" onclick="location.href='/course/{{ c.id }}'">
+          <div class="ccb-banner" style="background:{{ colors[loop.index0 % 5] }}">
+            <span style="font-size:48px">{{ icons[loop.index0 % 10] }}</span>
+          </div>
+          <div class="ccb-body">
+            <div class="ccb-title">{{ c.title }}</div>
+            <div class="ccb-desc">{{ c.description or 'No description available.' }}</div>
+            <div class="ccb-footer">
+              <span class="badge badge-blue">{{ c.department or 'General' }}</span>
+              <a href="/learn/{{ c.id }}" class="btn btn-sm btn-accent" onclick="event.stopPropagation()">Start Learning →</a>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% else %}
+      <div class="empty-state">
+        <div class="icon">📚</div>
+        <div style="font-size:16px;font-weight:600;margin-bottom:8px">No Courses Available</div>
+        <div style="font-size:13px;color:var(--muted)">Check back later — new courses are being added!</div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+<style>
+.courses-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+.course-card-big {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all .2s;
+}
+.course-card-big:hover {
+  border-color: var(--accent);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(91,110,245,.18);
+}
+.ccb-banner {
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ccb-body { padding: 18px; }
+.ccb-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+.ccb-desc {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.6;
+  margin-bottom: 14px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.ccb-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+@media(max-width:1100px) { .courses-grid { grid-template-columns: repeat(2,1fr); } }
+@media(max-width:700px)  { .courses-grid { grid-template-columns: 1fr; } }
+</style>
+</body>
+</html>

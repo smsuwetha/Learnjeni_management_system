@@ -1,0 +1,68 @@
+<!-- ════════════════════════════════════════════
+     SAVE AS: templates/admin/manage_students.html
+════════════════════════════════════════════ -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Manage Students — LearnJeni</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="app-layout">
+  <div class="sidebar">
+    <div class="sb-logo"><div class="sb-logo-icon">🎓</div><div><div class="sb-logo-name">LearnJeni</div><div class="sb-logo-tag">Admin Panel</div></div></div>
+    <div class="sb-nav">
+      <div class="sb-section">Main</div>
+      <a class="sb-link" href="/admin_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+      <a class="sb-link active" href="/manage_students"><span class="sb-icon">👨‍🎓</span> Students</a>
+      <a class="sb-link" href="/manage_staff"><span class="sb-icon">👩‍🏫</span> Staff</a>
+      <a class="sb-link" href="/manage_courses"><span class="sb-icon">📚</span> Courses</a>
+      <div class="sb-section">Reports</div>
+      <a class="sb-link" href="/admin_videos"><span class="sb-icon">🎥</span> Manage Videos</a>\n    <a class="sb-link" href="/analytics"><span class="sb-icon">📊</span> Analytics</a>
+      <a class="sb-link" href="/all_users"><span class="sb-icon">👥</span> All Users</a>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user"><div class="sb-avatar" style="background:linear-gradient(135deg,#5B6EF5,#9B6EF5)">👑</div><div><div class="sb-uname">{{ session.name }}</div><div class="sb-urole">Super Admin</div></div></div>
+      <a class="sb-logout" href="/logout">🚪 Logout</a>
+    </div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left"><div class="topbar-title">Manage Students</div><div class="topbar-sub">View, edit and remove student accounts</div></div>
+    </div>
+    <div class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}{% for c,m in messages %}<div class="flash {{c}}">{{m}}</div>{% endfor %}{% endif %}{% endwith %}
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">Student List ({{ students|length }})</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Mobile</th><th>Roll No</th><th>Department</th><th>Action</th></tr></thead>
+            <tbody>
+              {% for s in students %}
+              <tr>
+                <td>{{ s.id }}</td>
+                <td class="td-name">{{ s.name }}</td>
+                <td>{{ s.email }}</td>
+                <td>{{ s.mobile or '—' }}</td>
+                <td>{{ s.roll_no or '—' }}</td>
+                <td>{{ s.department or '—' }}</td>
+                <td>
+                  <a href="/delete_student/{{ s.id }}" class="btn btn-sm btn-red"
+                     onclick="return confirm('Delete {{ s.name }}?')">Delete</a>
+                </td>
+              </tr>
+              {% else %}
+              <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:32px">No students found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

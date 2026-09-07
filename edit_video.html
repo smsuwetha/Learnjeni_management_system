@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"><title>Edit Video — Admin</title>
+<link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"></head>
+<body><div class="app-layout">
+<div class="sidebar">
+  <div class="sb-logo"><div class="sb-logo-icon">🎓</div><div><div class="sb-logo-name">LearnJeni</div><div class="sb-logo-tag">Admin Panel</div></div></div>
+  <div class="sb-nav"><div class="sb-section">Main</div>
+    <a class="sb-link" href="/admin_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+    <a class="sb-link" href="/manage_students"><span class="sb-icon">👨‍🎓</span> Students</a>
+    <a class="sb-link" href="/manage_staff"><span class="sb-icon">👩‍🏫</span> Staff</a>
+    <a class="sb-link" href="/manage_courses"><span class="sb-icon">📚</span> Courses</a>
+    <a class="sb-link active" href="/admin_videos"><span class="sb-icon">🎥</span> Manage Videos</a>
+    <div class="sb-section">Reports</div>
+    <a class="sb-link" href="/analytics"><span class="sb-icon">📊</span> Analytics</a>
+  </div>
+  <div class="sb-footer"><div class="sb-user"><div class="sb-avatar" style="background:linear-gradient(135deg,#5B6EF5,#9B6EF5)">👑</div>
+    <div><div class="sb-uname">{{ session.name }}</div><div class="sb-urole">Super Admin</div></div></div>
+    <a class="sb-logout" href="/logout">🚪 Logout</a></div>
+</div>
+<div class="main">
+  <div class="topbar"><div class="topbar-left"><div class="topbar-title">Edit Video</div><div class="topbar-sub">Update video details (Admin)</div></div></div>
+  <div class="page-content">
+    {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}{% for c,m in messages %}<div class="flash {{c}}">{{m}}</div>{% endfor %}{% endif %}{% endwith %}
+    <a class="back-link" href="/admin_videos">← Back to All Videos</a>
+    <div class="card" style="max-width:680px">
+      <div class="card-head"><span class="card-title">✏️ Edit: {{ video.title }}</span></div>
+      <form method="POST" action="/admin_edit_video/{{ video.id }}" enctype="multipart/form-data">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Course *</label>
+            <select class="form-select" name="course_id" required>
+              {% for c in courses %}
+              <option value="{{ c.id }}" {% if c.id == video.course_id %}selected{% endif %}>{{ c.title }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Lesson Title *</label>
+            <input class="form-input" type="text" name="title" value="{{ video.title }}" required>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Duration</label>
+            <input class="form-input" type="text" name="duration" value="{{ video.duration or '' }}" placeholder="12:30">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description</label>
+            <input class="form-input" type="text" name="description" value="{{ video.description or '' }}">
+          </div>
+        </div>
+        {% if video.video_url %}
+        <div class="form-group">
+          <label class="form-label">Current Video</label>
+          <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:13px;color:var(--soft);display:flex;align-items:center;gap:10px">
+            <span>🎥 {{ video.video_url }}</span>
+            <a href="{{ video.video_url }}" target="_blank" class="btn btn-sm btn-teal">Watch</a>
+          </div>
+        </div>
+        {% endif %}
+        <div class="form-group">
+          <label class="form-label">Replace Video File (optional)</label>
+          <div class="upload-zone" onclick="document.getElementById('avf').click()" style="padding:24px">
+            <div class="upload-icon" style="font-size:32px;margin-bottom:8px">🎬</div>
+            <div class="upload-title" id="avf-label" style="font-size:14px">Click to choose new video</div>
+            <div class="upload-sub">MP4 · MOV · AVI · MKV</div>
+            <input id="avf" type="file" name="video_file" accept=".mp4,.mov,.avi,.mkv" style="display:none"
+                   onchange="document.getElementById('avf-label').textContent=this.files[0]?this.files[0].name:'Click to choose'">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Or YouTube Embed URL</label>
+          <input class="form-input" type="url" name="video_url" value="{{ video.video_url if video.video_url and 'youtube' in video.video_url else '' }}" placeholder="https://www.youtube.com/embed/VIDEO_ID">
+        </div>
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <button type="submit" class="btn btn-accent" style="width:auto;padding:10px 28px">✅ Save Changes</button>
+          <a href="/admin_videos" class="btn btn-ghost" style="padding:10px 20px">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div></div></body></html>

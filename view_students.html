@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>View Students — LearnJeni</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body>
+<div class="app-layout">
+  <div class="sidebar">
+    <div class="sb-logo"><div class="sb-logo-icon">👩‍🏫</div><div><div class="sb-logo-name">LearnJeni</div><div class="sb-logo-tag">Staff Panel</div></div></div>
+    <div class="sb-nav">
+      <div class="sb-section">Main</div>
+      <a class="sb-link" href="/staff_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+      <a class="sb-link" href="/add_course"><span class="sb-icon">➕</span> Add Course</a>
+      <a class="sb-link active" href="/view_students"><span class="sb-icon">👥</span> View Students</a>
+      <a class="sb-link" href="/mark_attendance"><span class="sb-icon">📋</span> Mark Attendance</a>
+      <a class="sb-link" href="/manage_quiz"><span class="sb-icon">📝</span> Manage Quiz</a>
+      <a class="sb-link" href="/upload_video"><span class="sb-icon">🎥</span> Upload Video</a>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user"><div class="sb-avatar" style="background:linear-gradient(135deg,#2ECEC4,#5B6EF5)">👩‍🏫</div><div><div class="sb-uname">{{ session.name }}</div><div class="sb-urole">Staff Member</div></div></div>
+      <a class="sb-logout" href="/logout">🚪 Logout</a>
+    </div>
+  </div>
+  <div class="main">
+    <div class="topbar"><div class="topbar-left"><div class="topbar-title">View Students</div><div class="topbar-sub">All enrolled students</div></div></div>
+    <div class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}{% for c,m in messages %}<div class="flash {{c}}">{{m}}</div>{% endfor %}{% endif %}{% endwith %}
+      <div class="card">
+        <div class="card-head"><span class="card-title">Students ({{ students|length }})</span></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Roll No</th><th>Course</th><th>Department</th></tr></thead>
+            <tbody>
+              {% for s in students %}
+              <tr>
+                <td>{{ s.id }}</td><td class="td-name">{{ s.name }}</td><td>{{ s.email }}</td>
+                <td>{{ s.roll_no or '—' }}</td><td>{{ s.course or '—' }}</td><td>{{ s.department or '—' }}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:32px">No students found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

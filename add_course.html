@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Add Course — LearnJeni</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body>
+<div class="app-layout">
+  <div class="sidebar">
+    <div class="sb-logo"><div class="sb-logo-icon">👩‍🏫</div><div><div class="sb-logo-name">LearnJeni</div><div class="sb-logo-tag">Staff Panel</div></div></div>
+    <div class="sb-nav">
+      <div class="sb-section">Main</div>
+      <a class="sb-link" href="/staff_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+      <a class="sb-link active" href="/add_course"><span class="sb-icon">➕</span> Add Course</a>
+      <a class="sb-link" href="/view_students"><span class="sb-icon">👥</span> View Students</a>
+      <a class="sb-link" href="/mark_attendance"><span class="sb-icon">📋</span> Mark Attendance</a>
+      <a class="sb-link" href="/manage_quiz"><span class="sb-icon">📝</span> Manage Quiz</a>
+      <a class="sb-link" href="/upload_video"><span class="sb-icon">🎥</span> Upload Video</a>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user"><div class="sb-avatar" style="background:linear-gradient(135deg,#2ECEC4,#5B6EF5)">👩‍🏫</div><div><div class="sb-uname">{{ session.name }}</div><div class="sb-urole">Staff Member</div></div></div>
+      <a class="sb-logout" href="/logout">🚪 Logout</a>
+    </div>
+  </div>
+  <div class="main">
+    <div class="topbar"><div class="topbar-left"><div class="topbar-title">Add New Course</div><div class="topbar-sub">Create and publish a course for students</div></div></div>
+    <div class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}{% for c,m in messages %}<div class="flash {{c}}">{{m}}</div>{% endfor %}{% endif %}{% endwith %}
+
+      <a class="back-link" href="/staff_dashboard">← Back to Dashboard</a>
+
+      <form method="POST" action="/add_course" enctype="multipart/form-data">
+        <div class="card" style="max-width:680px">
+          <div class="card-head"><span class="card-title">📚 Course Details</span></div>
+
+          <div class="form-group">
+            <label class="form-label">Course Title *</label>
+            <input class="form-input" type="text" name="title" placeholder="e.g. Introduction to Python Programming" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Department</label>
+              <select class="form-select" name="department">
+                <option value="">Select Department</option>
+                <option>Computer Science</option>
+                <option>Electronics</option>
+                <option>Mechanical</option>
+                <option>Civil</option>
+                <option>Mathematics</option>
+                <option>Physics</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Duration</label>
+              <input class="form-input" type="text" name="duration" placeholder="e.g. 8 Weeks">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description *</label>
+            <textarea class="form-textarea" name="description" rows="4"
+                      placeholder="Describe the course objectives, syllabus and prerequisites..." required></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">YouTube Embed URL (optional)</label>
+            <input class="form-input" type="url" name="video_url"
+                   placeholder="https://www.youtube.com/embed/VIDEO_ID">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Upload Notes (PDF, optional)</label>
+            <input class="form-input" type="file" name="notes_file" accept=".pdf">
+          </div>
+
+          <div style="display:flex;gap:10px;margin-top:8px">
+            <button type="submit" class="btn btn-accent" style="width:auto;padding:10px 28px">Publish Course</button>
+            <a href="/staff_dashboard" class="btn btn-ghost" style="padding:10px 20px">Cancel</a>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+</body>
+</html>

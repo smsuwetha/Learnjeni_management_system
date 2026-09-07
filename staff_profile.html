@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Profile — LearnJeni</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="app-layout">
+
+  <!-- ── SIDEBAR ── -->
+  <div class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-icon">🎓</div>
+      <div>
+        <div class="sb-logo-name">LearnJeni</div>
+        <div class="sb-logo-tag">Staff Panel</div>
+      </div>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-section">Teaching</div>
+      <a class="sb-link" href="/staff_dashboard"><span class="sb-icon">⊞</span> Dashboard</a>
+      <a class="sb-link" href="/manage_courses"><span class="sb-icon">📚</span> My Courses</a>
+      <a class="sb-link" href="/manage_videos"><span class="sb-icon">📹</span> My Videos</a>
+
+      <div class="sb-section">Management</div>
+      <a class="sb-link" href="/view_students"><span class="sb-icon">👥</span> Students</a>
+      <a class="sb-link" href="/mark_attendance"><span class="sb-icon">📋</span> Attendance</a>
+    </div>
+    <div class="sb-footer">
+      <div class="sb-user">
+        <div class="sb-avatar" style="background:linear-gradient(135deg,#9D6EF5,#6E7FED)">
+          {{ session.name[0] | upper }}
+        </div>
+        <div>
+          <div class="sb-uname">{{ session.name }}</div>
+          <div class="sb-urole">Staff</div>
+        </div>
+      </div>
+      <a class="sb-logout" href="/logout">🚪 Logout</a>
+    </div>
+  </div>
+
+  <!-- ── MAIN ── -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-title">Staff Profile</div>
+        <div class="topbar-sub">Complete professional information</div>
+      </div>
+      <div class="topbar-actions">
+        <a class="btn btn-ghost btn-sm" href="/staff_dashboard">← Back to Dashboard</a>
+      </div>
+    </div>
+
+    <div class="page-content">
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <!-- ── HEADER WITH PHOTO ── -->
+      <div class="profile-header">
+        <div class="profile-photo-container">
+          {% if staff.photo %}
+            <img src="{{ staff.photo }}" alt="Profile Photo" class="profile-photo">
+          {% else %}
+            <div class="profile-photo-placeholder">
+              {{ staff.name[0] | upper }}
+            </div>
+          {% endif %}
+        </div>
+        <div class="profile-header-info">
+          <h1 class="profile-name">{{ staff.name }}</h1>
+          <p class="profile-email">{{ staff.email }}</p>
+          <div class="profile-badges">
+            <span class="badge badge-purple">👨‍🏫 Staff Member</span>
+            <span class="badge badge-blue">{{ staff.designation or "Instructor" }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MAIN GRID ── -->
+      <div class="grid-profile">
+
+        <!-- LEFT COLUMN -->
+        <div style="display:flex;flex-direction:column;gap:20px">
+
+          <!-- Personal Information -->
+          <div class="card">
+            <div class="card-head"><span class="card-title">📋 Personal Information</span></div>
+            <div class="profile-details">
+              <div class="detail-row">
+                <div class="detail-label">Full Name</div>
+                <div class="detail-value">{{ staff.name }}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Email Address</div>
+                <div class="detail-value">{{ staff.email }}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Mobile Number</div>
+                <div class="detail-value">{{ staff.mobile or "Not provided" }}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Date of Birth</div>
+                <div class="detail-value">
+                  {% if staff.dob %}
+                    {{ staff.dob.strftime('%B %d, %Y') }}
+                  {% else %}
+                    Not provided
+                  {% endif %}
+                </div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Member Since</div>
+                <div class="detail-value">{{ staff.created_at.strftime('%B %d, %Y') }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Professional Information -->
+          <div class="card">
+            <div class="card-head"><span class="card-title">👨‍💼 Professional Information</span></div>
+            <div class="profile-details">
+              <div class="detail-row">
+                <div class="detail-label">Staff ID</div>
+                <div class="detail-value">{{ staff.staff_id or "Not assigned" }}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Designation</div>
+                <div class="detail-value">{{ staff.designation or "Not specified" }}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Department</div>
+                <div class="detail-value">{{ staff.department or "Not specified" }}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Experience</div>
+                <div class="detail-value">{{ staff.experience or "Not specified" }}</div>
+              </div>
+              <div class="detail-row">
+                <div class="detail-label">Qualification</div>
+                <div class="detail-value">{{ staff.qualification or "Not specified" }}</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div style="display:flex;flex-direction:column;gap:20px">
+
+          <!-- Statistics -->
+          <div class="stats-grid">
+            <div class="stat-card purple">
+              <div class="stat-icon">📚</div>
+              <div class="stat-label">Courses Created</div>
+              <div class="stat-value">{{ courses_created }}</div>
+              <div class="stat-trend trend-neu">Active</div>
+            </div>
+
+            <div class="stat-card blue">
+              <div class="stat-icon">📹</div>
+              <div class="stat-label">Videos Uploaded</div>
+              <div class="stat-value">{{ videos_uploaded }}</div>
+              <div class="stat-trend trend-up">Total</div>
+            </div>
+          </div>
+
+          <!-- Summary Card -->
+          <div class="card">
+            <div class="card-head"><span class="card-title">📊 Activity Summary</span></div>
+            <div style="display:flex;flex-direction:column;gap:12px">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--surface2);border-radius:8px;border-left:4px solid var(--purple)">
+                <div>
+                  <div style="font-size:12px;color:var(--muted);margin-bottom:2px">Courses Created</div>
+                  <div style="font-size:16px;font-weight:600;color:var(--text)">{{ courses_created }}</div>
+                </div>
+                <div style="font-size:32px">📚</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--surface2);border-radius:8px;border-left:4px solid var(--accent)">
+                <div>
+                  <div style="font-size:12px;color:var(--muted);margin-bottom:2px">Videos Uploaded</div>
+                  <div style="font-size:16px;font-weight:600;color:var(--text)">{{ videos_uploaded }}</div>
+                </div>
+                <div style="font-size:32px">📹</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="card">
+            <div class="card-head"><span class="card-title">🚀 Quick Actions</span></div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <a href="/manage_courses" style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--surface2);border-radius:8px;text-decoration:none;color:var(--text);transition:all 0.2s;border:1px solid var(--border)">
+                <span style="font-size:20px">📚</span>
+                <div>
+                  <div style="font-size:13px;font-weight:600">Manage Courses</div>
+                  <div style="font-size:11px;color:var(--muted)">View & edit courses</div>
+                </div>
+                <span style="margin-left:auto;color:var(--muted)">→</span>
+              </a>
+              <a href="/manage_videos" style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--surface2);border-radius:8px;text-decoration:none;color:var(--text);transition:all 0.2s;border:1px solid var(--border)">
+                <span style="font-size:20px">📹</span>
+                <div>
+                  <div style="font-size:13px;font-weight:600">Manage Videos</div>
+                  <div style="font-size:11px;color:var(--muted)">Upload & organize</div>
+                </div>
+                <span style="margin-left:auto;color:var(--muted)">→</span>
+              </a>
+              <a href="/view_students" style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--surface2);border-radius:8px;text-decoration:none;color:var(--text);transition:all 0.2s;border:1px solid var(--border)">
+                <span style="font-size:20px">👥</span>
+                <div>
+                  <div style="font-size:13px;font-weight:600">View Students</div>
+                  <div style="font-size:11px;color:var(--muted)">Student details</div>
+                </div>
+                <span style="margin-left:auto;color:var(--muted)">→</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Professional Status -->
+          <div class="card" style="background:linear-gradient(135deg,rgba(155,110,245,.08),rgba(91,110,245,.06));border-color:rgba(155,110,245,.2)">
+            <div class="card-title" style="margin-bottom:12px">✨ Professional Status</div>
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;color:var(--soft)">
+              <div style="display:flex;gap:8px;align-items:center">
+                <span>✅</span>
+                <span>Account verified and active</span>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span>📚</span>
+                <span>{{ courses_created }} course{{ "s" if courses_created != 1 else "" }} in system</span>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span>🎥</span>
+                <span>{{ videos_uploaded }} video{{ "s" if videos_uploaded != 1 else "" }} uploaded</span>
+              </div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <span>🎓</span>
+                <span>Ready to teach and mentor students</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+/* Profile Header Styles */
+.profile-header {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  padding: 24px;
+  background: var(--surface);
+  border-radius: 16px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border);
+}
+
+.profile-photo-container {
+  flex-shrink: 0;
+}
+
+.profile-photo {
+  width: 140px;
+  height: 140px;
+  border-radius: 16px;
+  object-fit: cover;
+  border: 3px solid var(--purple);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.profile-photo-placeholder {
+  width: 140px;
+  height: 140px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 52px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #9D6EF5, #6E7FED);
+  color: white;
+  border: 3px solid var(--border);
+}
+
+.profile-header-info {
+  flex: 1;
+  padding-top: 4px;
+}
+
+.profile-name {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 4px 0;
+}
+
+.profile-email {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0 0 12px 0;
+}
+
+.profile-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-blue {
+  background: rgba(91,110,245,0.2);
+  color: var(--accent);
+}
+
+.badge-purple {
+  background: rgba(155,110,245,0.2);
+  color: var(--purple);
+}
+
+/* Grid Layout */
+.grid-profile {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+@media (max-width: 1200px) {
+  .grid-profile {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Profile Details */
+.profile-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.detail-row:last-child {
+  border-bottom: none;
+}
+
+.detail-label {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.detail-value {
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 600;
+  text-align: right;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .profile-header-info {
+    width: 100%;
+  }
+  
+  .profile-badges {
+    justify-content: center;
+  }
+  
+  .detail-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .detail-value {
+    text-align: left;
+  }
+  
+  .grid-profile {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Links Hover */
+a[href] {
+  transition: all 0.2s;
+}
+
+a[href]:hover {
+  border-color: var(--accent) !important;
+  transform: translateX(4px);
+}
+</style>
+
+</body>
+</html>
