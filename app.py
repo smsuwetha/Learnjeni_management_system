@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_from_directory
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from functools import wraps
@@ -405,6 +405,12 @@ def staff_dashboard():
 @app.route('/add_course', methods=['GET', 'POST'])
 @login_required
 @role_required('staff')
+
+@app.route('/download_pdf/<filename>')
+@login_required
+def download_pdf(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
+
 def add_course():
     if request.method == 'POST':
         title     = request.form.get('title','').strip()
@@ -420,7 +426,7 @@ def add_course():
         if pdf_f and pdf_f.filename and allowed(pdf_f.filename, ALLOWED_PDF):
             fn = secure_filename(pdf_f.filename)
             pdf_f.save(os.path.join(UPLOAD_FOLDER, fn))
-            notes_url = f'/static/uploads/{fn}'
+          notes_url = f'/download_pdf/{fn}'
         conn = get_connection(); cursor = conn.cursor()
         try:
             cursor.execute(
