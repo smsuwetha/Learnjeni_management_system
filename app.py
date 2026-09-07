@@ -8,7 +8,7 @@ import os
 from db import get_connection, init_db
 
 app = Flask(__name__)
-app.secret_key = 'lms_secret_key_2024'
+app.secret_key = os.getenv('SECRET_KEY', 'dev-secret-key')
 
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 PHOTO_FOLDER  = os.path.join('static', 'uploads', 'photos')
