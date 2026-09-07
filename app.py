@@ -412,7 +412,6 @@ def download_pdf(filename):
 @login_required
 @role_required('staff')
 def add_course():
-def add_course():
     if request.method == 'POST':
         title     = request.form.get('title','').strip()
         desc      = request.form.get('description','').strip()
