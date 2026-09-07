@@ -402,15 +402,16 @@ def staff_dashboard():
                            courses=courses, my_courses=my_courses,
                            my_videos=my_videos, total_students=total_students)
 
-@app.route('/add_course', methods=['GET', 'POST'])
-@login_required
-@role_required('staff')
-
 @app.route('/download_pdf/<filename>')
 @login_required
 def download_pdf(filename):
     return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
 
+
+@app.route('/add_course', methods=['GET', 'POST'])
+@login_required
+@role_required('staff')
+def add_course():
 def add_course():
     if request.method == 'POST':
         title     = request.form.get('title','').strip()
