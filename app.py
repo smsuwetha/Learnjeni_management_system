@@ -10,12 +10,13 @@ from db import get_connection, init_db
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'dev-secret-key')
 
-UPLOAD_FOLDER = os.path.join('static', 'uploads')
-PHOTO_FOLDER  = os.path.join('static', 'uploads', 'photos')
-VIDEO_FOLDER  = os.path.join('static', 'uploads', 'videos')
+UPLOAD_FOLDER = '/tmp/uploads'
+PHOTO_FOLDER  = '/tmp/uploads/photos'
+VIDEO_FOLDER  = '/tmp/uploads/videos'
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-os.makedirs(PHOTO_FOLDER,  exist_ok=True)
-os.makedirs(VIDEO_FOLDER,  exist_ok=True)
+os.makedirs(PHOTO_FOLDER, exist_ok=True)
+os.makedirs(VIDEO_FOLDER, exist_ok=True)
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024
