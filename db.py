@@ -1,12 +1,14 @@
 import mysql.connector
+import os
 from mysql.connector import Error
 
 DB_CONFIG = {
-    'host':     'localhost',
-    'port':     3306,
-    'user':     'root',
-    'password': 'Sneh@2003',
-    'database': 'lms_db'
+    "host": os.getenv("DB_HOST"),
+    "port": int(os.getenv("DB_PORT", "3306")),
+    "user": os.getenv("DB_USER"),
+    "password": os.getenv("DB_PASSWORD"),
+    "database": os.getenv("DB_NAME", "defaultdb"),
+    "ssl_disabled": False
 }
 
 def get_connection():
@@ -19,16 +21,9 @@ def get_connection():
         return None
 
 def init_db():
-    try:
-        cfg = dict(DB_CONFIG); cfg.pop('database')
-        conn = mysql.connector.connect(**cfg)
-        cur  = conn.cursor()
-        cur.execute("CREATE DATABASE IF NOT EXISTS lms_db")
-        cur.close(); conn.close()
-    except Error as e:
-        print(f"[DB CREATE ERROR] {e}"); return
-
-    conn   = get_connection()
+    conn = get_connection()
+    if not conn:
+        return
     cursor = conn.cursor()
 
     cursor.execute("""
