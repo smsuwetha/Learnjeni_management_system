@@ -426,7 +426,7 @@ def add_course():
         if pdf_f and pdf_f.filename and allowed(pdf_f.filename, ALLOWED_PDF):
             fn = secure_filename(pdf_f.filename)
             pdf_f.save(os.path.join(UPLOAD_FOLDER, fn))
-          notes_url = f'/download_pdf/{fn}'
+            notes_url = f'/download_pdf/{fn}'
         conn = get_connection(); cursor = conn.cursor()
         try:
             cursor.execute(
